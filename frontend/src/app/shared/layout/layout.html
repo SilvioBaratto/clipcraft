@@ -1,0 +1,62 @@
+<!-- Main Layout Container - Mobile-First Responsive Design -->
+<div class="min-h-screen bg-gradient-to-br from-zinc-50 via-slate-50 to-zinc-100">
+    <!-- Mobile Header -->
+    <header
+        class="md:hidden bg-white/95 backdrop-blur-sm border-b border-slate-200/80 px-4 py-4 sticky top-0 z-30 shadow-sm">
+        <div class="flex items-center justify-between">
+            <button (click)="toggleSidebar()"
+                class="relative p-2.5 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:bg-slate-100 transition-all duration-200 active:scale-95 group"
+                aria-label="Open navigation menu">
+                <svg class="w-6 h-6 transition-transform duration-200 group-hover:scale-105" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center p-1.5">
+                    <img src="assets/logo/logo_icon.svg" alt="ClipCraft Logo" class="w-full h-full invert" />
+                </div>
+                <span class="font-bold text-slate-800" style="font-family: 'Space Grotesk', sans-serif;">ClipCraft</span>
+            </div>
+            <div class="w-11 h-11"></div> <!-- Spacer for centering -->
+        </div>
+    </header>
+
+    <!-- Layout Container -->
+    <div class="relative">
+
+        <!-- Sidebar Overlay for Mobile -->
+        @if (isSidebarOpen() && isMobile()) {
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden transition-all duration-300 ease-out sidebar-overlay"
+            (click)="closeSidebar()" role="button" tabindex="0" aria-label="Close sidebar"
+            (keydown.enter)="closeSidebar()" (keydown.space)="closeSidebar()">
+        </div>
+        }
+
+        <!-- Sidebar Component -->
+        <app-sidebar
+            [isOpen]="isSidebarOpen()"
+            [isMobile]="isMobile()"
+            (closeSidebar)="closeSidebar()"
+            (itemSelected)="onItemSelected($event)"
+            (newProjectClick)="openNewProjectModal()">
+        </app-sidebar>
+
+        <!-- Main Content Area with Fixed Sidebar Offset -->
+        <main class="min-h-screen md:ml-72">
+            <!-- Router Outlet for Page Content -->
+            <div class="p-3 sm:p-4 md:p-6 lg:p-8 xl:p-10 2xl:p-12 max-w-8xl mx-auto">
+                <div class="relative w-full">
+                    <router-outlet></router-outlet>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- New Project Modal -->
+<app-new-project-modal
+    [isOpen]="isNewProjectModalOpen()"
+    (closeModal)="closeNewProjectModal()"
+    (projectCreated)="onProjectCreated($event)">
+</app-new-project-modal>

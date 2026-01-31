@@ -1,0 +1,16 @@
+/* Project Detail Styles */
+
+/* Icon color filters using CSS filter property */
+/* These approximate the Tailwind color palette */
+
+.filter-emerald {
+  filter: invert(52%) sepia(85%) saturate(497%) hue-rotate(115deg) brightness(95%) contrast(92%);
+}
+
+.filter-blue {
+  filter: invert(45%) sepia(98%) saturate(1653%) hue-rotate(196deg) brightness(96%) contrast(93%);
+}
+
+.filter-violet {
+  filter: invert(36%) sepia(63%) saturate(3177%) hue-rotate(243deg) brightness(93%) contrast(91%);
+}

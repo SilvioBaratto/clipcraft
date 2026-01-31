@@ -1,0 +1,76 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: clipcraft_db
+    environment:
+      POSTGRES_DB: clipcraft
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d clipcraft"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - clipcraft_network
+    restart: unless-stopped
+
+  # Adminer - Database Management UI
+  adminer:
+    image: adminer:latest
+    container_name: clipcraft_adminer
+    depends_on:
+      - db
+    ports:
+      - "8090:8080"
+    networks:
+      - clipcraft_network
+    restart: unless-stopped
+
+  # NestJS API with BAML
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: clipcraft_api
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/clipcraft
+      CORS_ORIGIN: "http://localhost,http://localhost:3000,http://localhost:80"
+    ports:
+      - "3001:3001"
+    networks:
+      - clipcraft_network
+    restart: unless-stopped
+
+  # Angular Frontend with nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: clipcraft_frontend
+    depends_on:
+      - api
+    ports:
+      - "3000:80"
+    networks:
+      - clipcraft_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  clipcraft_network:
+    driver: bridge

@@ -1,0 +1,116 @@
+<!-- Full-screen login layout -->
+<div
+    class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+    <!-- Login container -->
+    <div class="w-full max-w-md">
+        <!-- Logo section -->
+        <div class="text-center mb-8">
+            <div class="h-16 sm:h-20 mx-auto mb-6 flex items-center justify-center">
+                <div class="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">
+                Welcome
+            </h1>
+            <p class="text-sm sm:text-base text-slate-600 font-medium">
+                Sign in to your account
+            </p>
+        </div>
+
+        <!-- Login card -->
+        <div class="bg-white shadow-xl rounded-2xl p-6 sm:p-8 border border-slate-200">
+            <!-- Card header -->
+            <div class="mb-6">
+                <h2 class="text-xl sm:text-2xl font-semibold text-slate-800 text-center mb-2">
+                    Secure Access
+                </h2>
+                <p class="text-sm text-slate-600 text-center">
+                    Enter your authentication token to access the system
+                </p>
+            </div>
+
+            <!-- Login form -->
+            <form (ngSubmit)="onSubmit()" class="space-y-6">
+                <!-- Token input -->
+                <div class="space-y-2">
+                    <label for="token" class="block text-sm font-medium text-slate-700">
+                        Authentication Token
+                    </label>
+                    <div class="relative">
+                        <input id="token" type="password" [(ngModel)]="token" (input)="onTokenChange()"
+                            (keypress)="onKeyPress($event)" name="token" placeholder="Enter your token"
+                            class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors duration-200 text-sm sm:text-base"
+                            [class.border-red-300]="showError()" [class.focus:border-red-500]="showError()"
+                            [disabled]="isLoading()" required autocomplete="current-password">
+
+                        <!-- Loading spinner in input -->
+                        @if (isLoading()) {
+                        <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <div
+                                class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full">
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Error message -->
+                @if (showError()) {
+                <div class="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start space-x-2">
+                    <!-- Error icon -->
+                    <svg class="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <div>
+                        <p class="text-sm font-medium text-red-800">Authentication Failed</p>
+                        <p class="text-sm text-red-600 mt-1">{{ errorMessage() }}</p>
+                    </div>
+                </div>
+                }
+
+                <!-- Submit button -->
+                <button type="submit" [disabled]="!canSubmit()"
+                    class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-slate-400 disabled:to-slate-500 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:shadow-lg disabled:cursor-not-allowed disabled:transform-none transform hover:scale-[1.02] active:scale-[0.98]">
+                    @if (isLoading()) {
+                    <div class="flex items-center justify-center space-x-2">
+                        <div class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+                        <span>Authenticating...</span>
+                    </div>
+                    } @else {
+                    <div class="flex items-center justify-center space-x-2">
+                        <!-- Lock icon -->
+                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span>Sign In</span>
+                    </div>
+                    }
+                </button>
+            </form>
+
+            <!-- Additional info -->
+            <div class="mt-6 pt-6 border-t border-slate-200">
+                <div class="text-center">
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Authorized personnel only. All activities are monitored and logged.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 text-center">
+            <p class="text-xs text-slate-500">
+                © 2024 Your Company. All rights reserved.
+            </p>
+        </div>
+    </div>
+</div>

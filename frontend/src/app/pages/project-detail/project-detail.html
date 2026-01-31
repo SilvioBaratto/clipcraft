@@ -1,0 +1,641 @@
+@if (project(); as project) {
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+      <button
+        (click)="goBack()"
+        class="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors group"
+      >
+        <svg
+          class="w-5 h-5 group-hover:-translate-x-0.5 transition-transform"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          ></path>
+        </svg>
+        <span class="font-medium">Back to Projects</span>
+      </button>
+    </div>
+
+    <!-- Project Title -->
+    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-slate-900">{{ project.name }}</h1>
+        <p class="text-slate-500 mt-1">{{ project.folderName }}</p>
+      </div>
+      <div class="flex items-center gap-2">
+        @if (project.hasAnimations) {
+          <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm font-medium rounded-full">
+            Animations
+          </span>
+        }
+        @if (project.hasCarousel) {
+          <span class="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
+            Instagram
+          </span>
+        }
+        @if (project.hasPreview) {
+          <span class="px-3 py-1 bg-violet-100 text-violet-700 text-sm font-medium rounded-full">
+            Preview
+          </span>
+        }
+        @if (isAllGenerated()) {
+          <button
+            (click)="downloadAllAsPng()"
+            [disabled]="isDownloading()"
+            class="inline-flex items-center gap-2 px-4 py-1.5 text-sm font-medium text-white bg-slate-800 hover:bg-slate-700 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            @if (isDownloading()) {
+              <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>{{ downloadProgress() }}/{{ downloadTotal() }}</span>
+            } @else {
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+              </svg>
+              <span>Download PNG</span>
+            }
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Content Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      @for (card of contentCards; track card.type) {
+        <button
+          (click)="onCardClick(card.type)"
+          [disabled]="!isCardAvailable(card.type)"
+          [class]="getCardColorClasses(card.color, isCardAvailable(card.type))"
+          class="relative p-6 rounded-2xl border-2 transition-all duration-300 text-left group"
+        >
+          <!-- Icon -->
+          <div
+            class="w-12 h-12 rounded-xl flex items-center justify-center mb-4 p-2"
+            [class]="{
+              'bg-emerald-100': card.color === 'emerald' && isCardAvailable(card.type),
+              'bg-blue-100': card.color === 'blue' && isCardAvailable(card.type),
+              'bg-violet-100': card.color === 'violet' && isCardAvailable(card.type),
+              'bg-slate-100': !isCardAvailable(card.type),
+            }"
+          >
+            <img
+              [src]="card.iconPath"
+              [alt]="card.title"
+              class="w-full h-full"
+              [class]="{
+                'opacity-30': !isCardAvailable(card.type),
+                'filter-emerald': card.color === 'emerald' && isCardAvailable(card.type),
+                'filter-blue': card.color === 'blue' && isCardAvailable(card.type),
+                'filter-violet': card.color === 'violet' && isCardAvailable(card.type),
+              }"
+            />
+          </div>
+
+          <!-- Title -->
+          <h3
+            class="font-semibold text-lg"
+            [class]="{
+              'text-slate-900': isCardAvailable(card.type),
+              'text-slate-400': !isCardAvailable(card.type),
+            }"
+          >
+            {{ card.title }}
+          </h3>
+
+          <!-- Description -->
+          <p
+            class="text-sm mt-1"
+            [class]="{
+              'text-slate-500': isCardAvailable(card.type),
+              'text-slate-400': !isCardAvailable(card.type),
+            }"
+          >
+            {{ card.description }}
+          </p>
+
+          <!-- Status Badge -->
+          @if (!isCardAvailable(card.type)) {
+            <span
+              class="absolute top-4 right-4 px-2 py-1 bg-slate-200 text-slate-500 text-xs font-medium rounded-lg"
+            >
+              Not Generated
+            </span>
+          } @else {
+            <span
+              class="absolute top-4 right-4 px-2 py-1 text-xs font-medium rounded-lg"
+              [class]="{
+                'bg-emerald-100 text-emerald-700': card.color === 'emerald',
+                'bg-blue-100 text-blue-700': card.color === 'blue',
+                'bg-violet-100 text-violet-700': card.color === 'violet',
+              }"
+            >
+              Ready
+            </span>
+          }
+
+          <!-- Arrow indicator -->
+          @if (isCardAvailable(card.type)) {
+            <div
+              class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <svg
+                class="w-5 h-5"
+                [class]="{
+                  'text-emerald-500': card.color === 'emerald',
+                  'text-blue-500': card.color === 'blue',
+                  'text-violet-500': card.color === 'violet',
+                }"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"
+                ></path>
+              </svg>
+            </div>
+          }
+        </button>
+      }
+    </div>
+
+    <!-- Generation Section -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-6">
+        @if (!isGenerating() && currentStep() === 'idle') {
+          <!-- Generate Button -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h3 class="text-lg font-semibold text-slate-900">Generate Content</h3>
+              <p class="text-sm text-slate-500 mt-1">
+                Generate all content assets from your script
+              </p>
+            </div>
+            <button
+              (click)="startGeneration()"
+              class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl shadow-lg shadow-violet-500/30 hover:from-violet-700 hover:to-indigo-700 transition-all"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+              @if (isAllGenerated()) {
+                Regenerate All
+              } @else {
+                Generate All
+              }
+            </button>
+          </div>
+        } @else {
+          <!-- Progress Section -->
+          <div class="space-y-5">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-slate-900">
+                @if (currentStep() === 'complete') {
+                  Generation Complete
+                } @else {
+                  Generating Content...
+                }
+              </h3>
+              <span class="text-sm font-medium text-violet-600">{{ progress() }}%</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                class="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-700 ease-out"
+                [style.width.%]="progress()"
+              ></div>
+            </div>
+
+            <!-- Step indicators -->
+            <div class="grid grid-cols-3 gap-3">
+              <!-- Carousel step -->
+              <div class="flex items-center gap-2 p-3 rounded-lg"
+                [class]="{
+                  'bg-violet-50': currentStep() === 'carousel',
+                  'bg-emerald-50': currentStep() === 'animations' || currentStep() === 'previews' || currentStep() === 'complete',
+                  'bg-slate-50': currentStep() !== 'carousel' && currentStep() !== 'animations' && currentStep() !== 'previews' && currentStep() !== 'complete'
+                }">
+                @if (currentStep() === 'carousel') {
+                  <div class="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0"></div>
+                } @else if (currentStep() === 'animations' || currentStep() === 'previews' || currentStep() === 'complete') {
+                  <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                } @else {
+                  <div class="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0"></div>
+                }
+                <span class="text-sm font-medium truncate"
+                  [class]="{
+                    'text-violet-700': currentStep() === 'carousel',
+                    'text-emerald-700': currentStep() === 'animations' || currentStep() === 'previews' || currentStep() === 'complete',
+                    'text-slate-400': currentStep() !== 'carousel' && currentStep() !== 'animations' && currentStep() !== 'previews' && currentStep() !== 'complete'
+                  }">Carousel</span>
+              </div>
+
+              <!-- Animations step -->
+              <div class="flex items-center gap-2 p-3 rounded-lg"
+                [class]="{
+                  'bg-violet-50': currentStep() === 'animations',
+                  'bg-emerald-50': currentStep() === 'previews' || currentStep() === 'complete',
+                  'bg-slate-50': currentStep() !== 'animations' && currentStep() !== 'previews' && currentStep() !== 'complete'
+                }">
+                @if (currentStep() === 'animations') {
+                  <div class="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0"></div>
+                } @else if (currentStep() === 'previews' || currentStep() === 'complete') {
+                  <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                } @else {
+                  <div class="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0"></div>
+                }
+                <span class="text-sm font-medium truncate"
+                  [class]="{
+                    'text-violet-700': currentStep() === 'animations',
+                    'text-emerald-700': currentStep() === 'previews' || currentStep() === 'complete',
+                    'text-slate-400': currentStep() !== 'animations' && currentStep() !== 'previews' && currentStep() !== 'complete'
+                  }">Animations</span>
+              </div>
+
+              <!-- Previews step -->
+              <div class="flex items-center gap-2 p-3 rounded-lg"
+                [class]="{
+                  'bg-violet-50': currentStep() === 'previews',
+                  'bg-emerald-50': currentStep() === 'complete',
+                  'bg-slate-50': currentStep() !== 'previews' && currentStep() !== 'complete'
+                }">
+                @if (currentStep() === 'previews') {
+                  <div class="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0"></div>
+                } @else if (currentStep() === 'complete') {
+                  <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                } @else {
+                  <div class="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0"></div>
+                }
+                <span class="text-sm font-medium truncate"
+                  [class]="{
+                    'text-violet-700': currentStep() === 'previews',
+                    'text-emerald-700': currentStep() === 'complete',
+                    'text-slate-400': currentStep() !== 'previews' && currentStep() !== 'complete'
+                  }">Previews</span>
+              </div>
+            </div>
+
+            <!-- Error Message -->
+            @if (generationError()) {
+              <div class="p-4 bg-red-50 border border-red-200 rounded-xl">
+                <div class="flex items-center gap-2 text-red-700">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span class="text-sm font-medium">{{ generationError() }}</span>
+                </div>
+              </div>
+            }
+
+            <!-- Complete Message -->
+            @if (currentStep() === 'complete') {
+              <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                <div class="flex items-center gap-2 text-emerald-700">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <span class="text-sm font-medium">All content has been generated successfully!</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Expanded Content Panel -->
+    @if (activeTab()) {
+      <div
+        class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-in slide-in-from-top-4"
+      >
+        <div class="p-6 border-b border-slate-200">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-slate-900">
+              @switch (activeTab()) {
+                @case ('animations') {
+                  Animation Scenes
+                }
+                @case ('carousel') {
+                  Instagram Carousel
+                }
+                @case ('preview') {
+                  Preview Thumbnails
+                }
+              }
+            </h3>
+            <button
+              (click)="activeTab.set(null)"
+              class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="p-6">
+          <!-- Placeholder content based on tab -->
+          @switch (activeTab()) {
+            @case ('animations') {
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                @if (animations().length > 0 && animations()[0].scenes.length > 0) {
+                  @for (scene of animations()[0].scenes; track scene.id) {
+                    <div class="group/scene relative rounded-xl overflow-hidden border border-emerald-200 shadow-sm">
+                      <div
+                        appScaledIframe
+                        [contentWidth]="1920"
+                        [contentHeight]="1080"
+                        class="w-full"
+                      >
+                        @if (scene.generatedHtml) {
+                          <iframe
+                            [srcdoc]="scene.generatedHtml | safeHtml"
+                            sandbox="allow-scripts"
+                            [title]="'Scene ' + scene.sceneNumber"
+                          ></iframe>
+                        }
+                      </div>
+                      @if (!scene.generatedHtml) {
+                        <div class="aspect-video bg-emerald-50 flex items-center justify-center">
+                          <span class="text-emerald-600 font-medium">{{ scene.mainText }}</span>
+                        </div>
+                      }
+                      @if (scene.generatedHtml) {
+                        <button
+                          (click)="toggleFullscreen(scene.id)"
+                          class="absolute top-2 right-2 z-10 p-1.5 rounded-lg bg-black/50 text-white opacity-0 group-hover/scene:opacity-100 hover:bg-black/70 transition-all cursor-pointer"
+                          [title]="'Expand Scene ' + scene.sceneNumber"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"></path>
+                          </svg>
+                        </button>
+                      }
+                      <div class="absolute bottom-2 left-2 px-2 py-1 bg-emerald-600 text-white text-xs font-medium rounded z-10">
+                        Scene {{ scene.sceneNumber }}
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+                    <div
+                      class="aspect-video bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl flex items-center justify-center border border-emerald-200"
+                    >
+                      <span class="text-emerald-600 font-medium">Scene {{ i }}</span>
+                    </div>
+                  }
+                }
+              </div>
+            }
+            @case ('carousel') {
+              <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                @if (carousels().length > 0 && carousels()[0].slides.length > 0) {
+                  @for (slide of carousels()[0].slides; track slide.id) {
+                    <div class="relative rounded-xl overflow-hidden border border-blue-200 shadow-sm">
+                      <div
+                        appScaledIframe
+                        [contentWidth]="1080"
+                        [contentHeight]="1350"
+                        class="w-full"
+                      >
+                        @if (slide.generatedHtml) {
+                          <iframe
+                            [srcdoc]="slide.generatedHtml | safeHtml"
+                            sandbox="allow-scripts"
+                            [title]="'Slide ' + slide.slideNumber"
+                          ></iframe>
+                        }
+                      </div>
+                      @if (!slide.generatedHtml) {
+                        <div class="aspect-[4/5] bg-blue-50 flex items-center justify-center p-4">
+                          <span class="text-blue-600 font-medium text-center text-sm">{{ slide.mainText }}</span>
+                        </div>
+                      }
+                      <div class="absolute bottom-2 left-2 px-2 py-1 bg-blue-600 text-white text-xs font-medium rounded z-10">
+                        Slide {{ slide.slideNumber }}
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  @for (i of [1, 2, 3, 4, 5]; track i) {
+                    <div
+                      class="aspect-[4/5] bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center border border-blue-200"
+                    >
+                      <span class="text-blue-600 font-medium">Slide {{ i }}</span>
+                    </div>
+                  }
+                }
+              </div>
+            }
+            @case ('preview') {
+              <div class="flex flex-wrap gap-6 items-end">
+                @if (previews().length > 0) {
+                  @for (preview of previews(); track preview.id) {
+                    <div class="relative rounded-xl overflow-hidden border border-violet-200 shadow-sm w-36">
+                      <div
+                        appScaledIframe
+                        [contentWidth]="preview.width"
+                        [contentHeight]="preview.height"
+                        class="w-full"
+                      >
+                        @if (preview.generatedHtml) {
+                          <iframe
+                            [srcdoc]="preview.generatedHtml | safeHtml"
+                            sandbox="allow-scripts"
+                            [title]="preview.platform + ' Preview'"
+                          ></iframe>
+                        }
+                      </div>
+                      @if (!preview.generatedHtml) {
+                        <div class="aspect-[9/16] bg-violet-50 flex items-center justify-center p-4">
+                          <span class="text-violet-600 font-medium text-center text-sm">{{ preview.mainText }}</span>
+                        </div>
+                      }
+                      <div
+                        class="absolute bottom-2 left-2 px-2 py-1 text-white text-xs font-medium rounded z-10"
+                        [class]="{
+                          'bg-gradient-to-r from-purple-500 to-pink-500': preview.platform === 'instagram',
+                          'bg-black': preview.platform === 'tiktok'
+                        }"
+                      >
+                        {{ preview.platform === 'instagram' ? 'Instagram' : 'TikTok' }}
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  <!-- Placeholders -->
+                  <div
+                    class="w-36 aspect-[9/16] bg-gradient-to-br from-violet-50 to-violet-100 rounded-xl flex items-center justify-center border border-violet-200"
+                  >
+                    <span class="text-violet-600 font-medium text-sm">Instagram</span>
+                  </div>
+                  <div
+                    class="w-36 aspect-[9/16] bg-gradient-to-br from-violet-50 to-violet-100 rounded-xl flex items-center justify-center border border-violet-200"
+                  >
+                    <span class="text-violet-600 font-medium text-sm">TikTok</span>
+                  </div>
+                }
+              </div>
+            }
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Fullscreen Overlay (uses browser Fullscreen API) -->
+    @if (expandedSceneData(); as scene) {
+      <div
+        #fullscreenOverlay
+        tabindex="0"
+        class="relative w-screen h-screen bg-black flex items-center justify-center overflow-hidden"
+        (keydown.escape)="closeFullscreen()"
+      >
+        <!-- Close button -->
+        <button
+          (click)="closeFullscreen()"
+          class="absolute top-4 right-4 z-10 p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+
+        <!-- Scene label -->
+        <div class="absolute top-4 left-4 z-10 px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg">
+          Scene {{ scene.sceneNumber }}
+        </div>
+
+        <!-- Scaled iframe container -->
+        <div
+          appScaledIframe
+          [contentWidth]="1920"
+          [contentHeight]="1080"
+          style="aspect-ratio: 1920 / 1080; width: min(100vw, calc(100vh * 1920 / 1080)); height: min(100vh, calc(100vw * 1080 / 1920));"
+        >
+          @if (scene.generatedHtml) {
+            <iframe
+              [srcdoc]="scene.generatedHtml | safeHtml"
+              sandbox="allow-scripts"
+              [title]="'Scene ' + scene.sceneNumber + ' (fullscreen)'"
+            ></iframe>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Script Section -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-6 border-b border-slate-200">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-slate-900">Script</h3>
+          @if (!isEditingScript()) {
+            <button
+              (click)="startEditing()"
+              class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-violet-600 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                ></path>
+              </svg>
+              Edit
+            </button>
+          } @else {
+            <div class="flex items-center gap-2">
+              <button
+                (click)="cancelEditing()"
+                class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                (click)="saveScript()"
+                class="px-4 py-2 text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors"
+              >
+                Save Changes
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="p-6">
+        @if (isEditingScript()) {
+          <textarea
+            [(ngModel)]="editedScript"
+            rows="16"
+            class="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
+          ></textarea>
+        } @else {
+          <div class="prose prose-slate max-w-none">
+            <div class="space-y-4">
+              <!-- Hook -->
+              <div>
+                <h4 class="text-sm font-semibold text-violet-600 uppercase tracking-wide mb-2">
+                  Hook
+                </h4>
+                <p class="text-lg text-slate-900 font-medium">{{ project.script.hook }}</p>
+              </div>
+
+              <!-- Script Sections -->
+              <div>
+                <h4 class="text-sm font-semibold text-violet-600 uppercase tracking-wide mb-2">
+                  Script
+                </h4>
+                <div class="space-y-3">
+                  @for (section of project.script.sections; track $index) {
+                    <p class="text-slate-700">{{ section.testo }}</p>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="flex items-center justify-center py-16">
+    <div class="text-center">
+      <div
+        class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4"
+      >
+        <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          ></path>
+        </svg>
+      </div>
+      <h3 class="text-lg font-semibold text-slate-900 mb-2">Project not found</h3>
+      <button (click)="goBack()" class="text-violet-600 hover:text-violet-700 font-medium">
+        Go back to projects
+      </button>
+    </div>
+  </div>
+}

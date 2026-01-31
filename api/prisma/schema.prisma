@@ -1,0 +1,267 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =============================================================================
+// ENUMS (matching BAML definitions)
+// =============================================================================
+
+enum ContentStatus {
+  DRAFT
+  GENERATING
+  COMPLETED
+  FAILED
+}
+
+// Animation enums (from animation_structure.baml)
+enum SceneType {
+  INTRO
+  EXPLANATION
+  VISUALIZATION
+  COMPARISON
+  CTA
+}
+
+enum VisualType {
+  TWO_COLUMN
+  CENTERED
+  FLOW_DIAGRAM
+  SCATTER_PLOT
+  GRID
+  COMPARISON
+  DASHBOARD
+}
+
+// Carousel enums (from carousel.baml)
+enum SlideType {
+  HOOK
+  CONTENT
+  CTA
+}
+
+// =============================================================================
+// USER
+// =============================================================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects   Project[]
+  animations Animation[]
+  carousels  Carousel[]
+}
+
+// =============================================================================
+// PROJECT (main container for content)
+// =============================================================================
+
+model Project {
+  id         String  @id @default(cuid())
+  name       String
+  title      String
+  folderName String
+  hook       String  @db.Text
+  thumbnail  String?
+
+  // Source script
+  sourceScript String @db.Text
+
+  // Content flags
+  hasAnimations Boolean @default(false)
+  hasCarousel   Boolean @default(false)
+  hasPreview    Boolean @default(false)
+
+  // Relations
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Content relations (normalized)
+  carousels  Carousel[]
+  animations Animation[]
+  previews   Preview[]
+
+  @@index([userId])
+}
+
+// =============================================================================
+// ANIMATION (from animation_structure.baml + animation_html_generator.baml)
+// =============================================================================
+
+model Animation {
+  id              String        @id @default(cuid())
+  topic           String
+  totalScenes     Int
+  colorAccent     String
+  secondaryAccent String?
+  status          ContentStatus @default(DRAFT)
+
+  // Source script used to generate the animation
+  sourceScript String? @db.Text
+
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Project relation (for project-based generation)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  scenes AnimationScene[]
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([status])
+}
+
+model AnimationScene {
+  id          String @id @default(cuid())
+  animationId String
+  sceneNumber Int
+
+  // Structure data (from StructureAnimations output)
+  sceneType      SceneType
+  mainText       String
+  subText        String?
+  visualType     VisualType
+  visualElements String
+  emoji          String?
+  label          String?
+
+  // Generation prompt for HTML generator
+  generationPrompt String @db.Text
+
+  // Generated HTML output (from GenerateAnimationHTML)
+  generatedHtml String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  animation Animation @relation(fields: [animationId], references: [id], onDelete: Cascade)
+
+  @@unique([animationId, sceneNumber])
+  @@index([animationId])
+}
+
+// =============================================================================
+// CAROUSEL (from carousel.baml + carousel_html_generator.baml)
+// =============================================================================
+
+model Carousel {
+  id              String        @id @default(cuid())
+  topic           String
+  totalSlides     Int
+  colorAccent     String
+  secondaryAccent String?
+  status          ContentStatus @default(DRAFT)
+
+  // Platform settings
+  platform String? // e.g., "tiktok", "instagram"
+  canvas   String? // e.g., "1080x1350"
+  ratio    String? // e.g., "4:5"
+
+  // Source script used to generate the carousel
+  sourceScript String? @db.Text
+
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Project relation (for project-based generation)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  slides CarouselSlide[]
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([status])
+}
+
+model CarouselSlide {
+  id          String @id @default(cuid())
+  carouselId  String
+  slideNumber Int
+
+  // Structure data (from StructureCarousel output)
+  slideType     SlideType
+  mainText      String
+  highlightText String?
+  subText       String?
+  dataVisual    String?
+  emoji         String?
+  label         String?
+
+  // Generation prompt for HTML generator
+  generationPrompt String @db.Text
+
+  // Generated HTML output (from GenerateSlideHTML)
+  generatedHtml String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  carousel Carousel @relation(fields: [carouselId], references: [id], onDelete: Cascade)
+
+  @@unique([carouselId, slideNumber])
+  @@index([carouselId])
+}
+
+// =============================================================================
+// PREVIEW (from preview_generator.baml)
+// =============================================================================
+
+model Preview {
+  id String @id @default(cuid())
+
+  // Platform type (instagram, tiktok)
+  platform String // e.g., "instagram", "tiktok"
+
+  // Canvas dimensions
+  width  Int
+  height Int
+
+  // Colors
+  colorAccent     String
+  secondaryAccent String?
+
+  // Content
+  mainText      String
+  highlightText String?
+  subText       String?
+  emoji         String?
+  label         String?
+
+  // Generation prompt
+  generationPrompt String @db.Text
+
+  // Generated HTML output (from GeneratePreviewHTML)
+  generatedHtml String? @db.Text
+
+  status    ContentStatus @default(DRAFT)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  // Project relation
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([status])
+}

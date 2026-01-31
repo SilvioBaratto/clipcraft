@@ -1,0 +1,145 @@
+<!-- Home Page - Projects Grid -->
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Your Projects</h1>
+            <p class="text-slate-500 mt-1">{{ projectCount() }} projects created</p>
+        </div>
+
+        <!-- Search (placeholder for future) -->
+        <div class="relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <input type="text" placeholder="Search projects..."
+                class="w-full sm:w-64 pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all" />
+        </div>
+    </div>
+
+    <!-- Error State -->
+    @if (error()) {
+    <div class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+        <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <div>
+            <h4 class="font-medium text-red-800">Error</h4>
+            <p class="text-sm text-red-600 mt-1">{{ error() }}</p>
+        </div>
+    </div>
+    }
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+    <div class="flex items-center justify-center py-12">
+        <div class="flex flex-col items-center gap-4">
+            <div class="w-10 h-10 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin"></div>
+            <p class="text-slate-500 text-sm">Creating project...</p>
+        </div>
+    </div>
+    }
+
+    <!-- Projects Grid -->
+    @if (!isLoading()) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+        @for (project of projects(); track project.id) {
+        <button (click)="onProjectClick(project.id)"
+            class="group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-violet-200 transition-all duration-300 overflow-hidden text-left focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2">
+
+            <!-- Thumbnail -->
+            <div class="relative aspect-video bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
+                @if (project.thumbnail) {
+                <img [src]="project.thumbnail" [alt]="project.name"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                } @else {
+                <div class="w-full h-full flex items-center justify-center">
+                    <svg class="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                </div>
+                }
+
+                <!-- Status Badges -->
+                <div class="absolute top-2 right-2 flex gap-1.5">
+                    @if (project.hasAnimations) {
+                    <span
+                        class="px-2 py-1 bg-emerald-500/90 text-white text-xs font-medium rounded-lg backdrop-blur-sm">
+                        Animations
+                    </span>
+                    }
+                    @if (project.hasCarousel) {
+                    <span
+                        class="px-2 py-1 bg-blue-500/90 text-white text-xs font-medium rounded-lg backdrop-blur-sm">
+                        Carousel
+                    </span>
+                    }
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-4">
+                <h3 class="font-semibold text-slate-900 group-hover:text-violet-600 transition-colors truncate">
+                    {{ project.name }}
+                </h3>
+                <p class="text-sm text-slate-500 mt-1 line-clamp-2">
+                    {{ project.script.hook }}
+                </p>
+
+                <!-- Footer -->
+                <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
+                    <span class="text-xs text-slate-400">
+                        {{ formatDate(project.updatedAt) }}
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <button
+                            (click)="onDeleteProject($event, project.id)"
+                            [disabled]="deletingId() === project.id"
+                            class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 cursor-pointer"
+                            title="Delete project"
+                        >
+                            @if (deletingId() === project.id) {
+                                <div class="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div>
+                            } @else {
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            }
+                        </button>
+                        <svg
+                            class="w-4 h-4 text-slate-400 group-hover:text-violet-500 group-hover:translate-x-0.5 transition-all"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </button>
+        }
+    </div>
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading() && projects().length === 0) {
+    <div class="flex flex-col items-center justify-center py-16 px-4">
+        <div
+            class="w-20 h-20 bg-gradient-to-br from-violet-100 to-indigo-100 rounded-2xl flex items-center justify-center mb-6">
+            <svg class="w-10 h-10 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
+                </path>
+            </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-slate-900 mb-2">No projects yet</h3>
+        <p class="text-slate-500 text-center max-w-md">
+            Create your first project by clicking the "New Project" button in the sidebar.
+        </p>
+    </div>
+    }
+</div>

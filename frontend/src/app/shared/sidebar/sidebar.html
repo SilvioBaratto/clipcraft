@@ -1,0 +1,63 @@
+<!-- Fixed Sidebar Navigation - ClipCraft -->
+<aside
+    class="fixed left-0 top-0 z-50 h-screen w-72 bg-white/95 backdrop-blur-sm border-r border-slate-200/60 shadow-xl shadow-slate-950/5 transform transition-all duration-300 ease-out md:fixed md:translate-x-0 md:z-30 md:shadow-lg md:bg-white/95 md:border-slate-200 flex flex-col"
+    [class.translate-x-0]="showSidebar()" [class.-translate-x-full]="!showSidebar()" [class.md:translate-x-0]="true">
+
+    <!-- Desktop Header Inside Sidebar -->
+    <div
+        class="hidden md:flex flex-col p-6 xl:p-8 border-b border-slate-200/80 flex-shrink-0 bg-gradient-to-r from-slate-50 to-zinc-50">
+        <div class="flex items-center justify-center gap-3">
+            <!-- Logo -->
+            <div class="w-12 h-12 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/30 p-2">
+                <img src="assets/logo/logo_icon.svg" alt="ClipCraft Logo" class="w-full h-full invert" />
+            </div>
+            <div>
+                <h1 class="text-xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent" style="font-family: 'Space Grotesk', sans-serif;">ClipCraft</h1>
+                <p class="text-xs text-slate-500">AI Content Studio</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Close Button -->
+    <div
+        class="flex items-center justify-between p-4 border-b border-slate-200/80 md:hidden flex-shrink-0 bg-gradient-to-r from-slate-50 to-zinc-50">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center p-1.5">
+                <img src="assets/logo/logo_icon.svg" alt="ClipCraft Logo" class="w-full h-full invert" />
+            </div>
+            <span class="font-bold text-slate-800" style="font-family: 'Space Grotesk', sans-serif;">ClipCraft</span>
+        </div>
+        <button (click)="onCloseSidebar()"
+            class="p-2.5 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:bg-slate-100 transition-all duration-200 active:scale-95 group"
+            aria-label="Close navigation menu">
+            <svg class="w-5 h-5 transition-transform duration-200 group-hover:rotate-90" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Content Area -->
+    <div class="flex-1 flex flex-col">
+        <!-- New Project Button -->
+        <div class="px-4 py-6">
+            <button (click)="onNewProjectClick()"
+                class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg shadow-violet-500/30 active:scale-95 focus:outline-none group">
+                <div class="flex items-center justify-center space-x-3">
+                    <img src="assets/icons/add.svg" alt="Add" class="w-6 h-6 invert transition-transform duration-200 group-hover:scale-110" />
+                    <span class="text-base font-bold tracking-wide">New Project</span>
+                </div>
+            </button>
+        </div>
+
+        <!-- Spacer -->
+        <div class="flex-1"></div>
+    </div>
+
+    <!-- Footer with version info -->
+    <div class="px-4 py-4 border-t border-slate-200/80 bg-slate-50/50">
+        <div class="text-center">
+            <p class="text-xs text-slate-500">ClipCraft v1.0</p>
+        </div>
+    </div>
+</aside>
