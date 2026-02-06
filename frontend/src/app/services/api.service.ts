@@ -196,4 +196,10 @@ export class ApiService {
   generateProjectPreviews(projectId: string): Observable<ProjectResponse> {
     return this.http.post<ProjectResponse>(`${this.baseUrl}/projects/${projectId}/generate/previews`, {});
   }
+
+  downloadProjectZip(projectId: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/projects/${projectId}/download`, {
+      responseType: 'blob',
+    });
+  }
 }

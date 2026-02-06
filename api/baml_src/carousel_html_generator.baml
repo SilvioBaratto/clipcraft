@@ -23,7 +23,7 @@ function GenerateSlideHTML(
 
     I need to make a modern carousel in a {{width}}x{{height}}px screen to show this script that should be visually striking with modern brutalist design and the text in the center clearly visible.
 
-    IMPORTANT: Use the full {{width}}x{{height}}px canvas but keep text and important content outside the bottom-left 320x320px area (reserved for profile logo). Decorative elements (bars, accents) can extend into this area but should stop before it or pass through subtly. Position bottom text starting from left: 350px minimum.
+    IMPORTANT: Use the full {{width}}x{{height}}px canvas 
 
     ## COLORS
     - Accent: {{ color_accent }}

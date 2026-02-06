@@ -7,6 +7,7 @@ import { ContentModule } from './modules/content/content.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { BamlModule } from './shared/baml/baml.module';
 import { PrismaModule } from './shared/prisma';
+import { RenderingModule } from './shared/rendering';
 import configuration from './config/configuration';
 
 @Module({
@@ -18,6 +19,7 @@ import configuration from './config/configuration';
     }),
     PrismaModule,
     BamlModule,
+    RenderingModule,
     HealthModule,
     ContentModule,
     ProjectsModule,

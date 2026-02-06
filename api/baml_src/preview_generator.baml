@@ -43,6 +43,7 @@ function GeneratePreviewHTML(
     4. Brutalist style: thick borders, hard shadows (no blur), no gradients, no rounded corners, no animations
     5. Lighter background (e.g. #F5F2E9 or similar off-white)
     6. Centered layout with bold oversized typography
+    7. This is a STATIC image — do NOT use any CSS animations, transitions, keyframes, or JavaScript. No @keyframes, no animation property, no transition property, no setTimeout/setInterval
 
     {{ _.role("user") }}
 

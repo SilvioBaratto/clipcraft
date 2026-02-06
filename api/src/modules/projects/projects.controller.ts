@@ -1,5 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Res } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import type { Response } from 'express';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto, ProjectResponseDto } from './dto/extract-metadata.dto';
 
@@ -112,6 +113,27 @@ export class ProjectsController {
   @ApiResponse({ status: 201, type: ProjectResponseDto })
   async generatePreviews(@Param('id') id: string): Promise<ProjectResponseDto> {
     return this.projectsService.generatePreviewContent(id);
+  }
+
+  @Get(':id/download')
+  @ApiOperation({
+    summary: 'Download project as PNG ZIP',
+    description:
+      'Renders all project content to PNG using Playwright and streams a ZIP archive',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'ZIP archive streamed successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Project not found',
+  })
+  async downloadProject(
+    @Param('id') id: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    await this.projectsService.streamProjectZip(id, res);
   }
 
   @Delete(':id')

@@ -1,7 +1,10 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Project, Carousel, CarouselSlide, Animation, AnimationScene, Preview } from '@prisma/client';
+import * as archiver from 'archiver';
+import type { Response } from 'express';
 import { BamlService } from '../../shared/baml/baml.service';
 import { PrismaService } from '../../shared/prisma/prisma.service';
+import { RenderingService } from '../../shared/rendering/rendering.service';
 import { CarouselService } from '../content/carousel/carousel.service';
 import { AnimationService } from '../content/animation/animation.service';
 import { PreviewService } from '../content/preview/preview.service';
@@ -31,6 +34,7 @@ export class ProjectsService {
   constructor(
     private readonly bamlService: BamlService,
     private readonly prisma: PrismaService,
+    private readonly renderingService: RenderingService,
     private readonly carouselService: CarouselService,
     private readonly animationService: AnimationService,
     private readonly previewService: PreviewService,
@@ -135,6 +139,128 @@ export class ProjectsService {
     });
 
     this.logger.log(`Project ${id} deleted`);
+  }
+
+  /**
+   * Stream a ZIP archive of all project content rendered as PNGs
+   */
+  async streamProjectZip(id: string, res: Response): Promise<void> {
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+      include: {
+        carousels: {
+          include: { slides: { orderBy: { slideNumber: 'asc' } } },
+          orderBy: { createdAt: 'desc' },
+        },
+        animations: {
+          include: { scenes: { orderBy: { sceneNumber: 'asc' } } },
+          orderBy: { createdAt: 'desc' },
+        },
+        previews: {
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${id} not found`);
+    }
+
+    // Collect render jobs
+    interface RenderJob {
+      folder: string;
+      filename: string;
+      html: string;
+      width: number;
+      height: number;
+      skipLogo: boolean;
+    }
+
+    const jobs: RenderJob[] = [];
+
+    // Animations: 1920x1080, no logo
+    for (const animation of project.animations) {
+      for (const scene of animation.scenes) {
+        if (scene.generatedHtml) {
+          jobs.push({
+            folder: 'animations',
+            filename: `scene-${scene.sceneNumber}.png`,
+            html: scene.generatedHtml,
+            width: 1920,
+            height: 1080,
+            skipLogo: true,
+          });
+        }
+      }
+    }
+
+    // Carousel: dimensions from canvas field, with logo
+    for (const carousel of project.carousels) {
+      const [w, h] = (carousel.canvas || '1080x1350')
+        .split('x')
+        .map(Number);
+      for (const slide of carousel.slides) {
+        if (slide.generatedHtml) {
+          jobs.push({
+            folder: 'carousel',
+            filename: `slide-${slide.slideNumber}.png`,
+            html: slide.generatedHtml,
+            width: w || 1080,
+            height: h || 1350,
+            skipLogo: false,
+          });
+        }
+      }
+    }
+
+    // Previews: use preview dimensions, with logo
+    for (const preview of project.previews) {
+      if (preview.generatedHtml) {
+        jobs.push({
+          folder: 'previews',
+          filename: `${preview.platform}.png`,
+          html: preview.generatedHtml,
+          width: preview.width,
+          height: preview.height,
+          skipLogo: false,
+        });
+      }
+    }
+
+    const zipName = `${project.folderName || project.name}.zip`;
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${zipName}"`,
+    );
+
+    const archive = archiver('zip', { zlib: { level: 5 } });
+    archive.pipe(res);
+
+    this.logger.log(
+      `Starting ZIP render for project ${id}: ${jobs.length} jobs`,
+    );
+
+    for (const job of jobs) {
+      try {
+        const pngBuffer = await this.renderingService.renderHtmlToPng(
+          job.html,
+          job.width,
+          job.height,
+          job.skipLogo,
+        );
+        archive.append(pngBuffer, { name: `${job.folder}/${job.filename}` });
+        this.logger.log(`Rendered ${job.folder}/${job.filename}`);
+      } catch (error) {
+        this.logger.error(
+          `Failed to render ${job.folder}/${job.filename}: ${error.message}`,
+        );
+      }
+    }
+
+    await archive.finalize();
+    this.logger.log(`ZIP archive finalized for project ${id}`);
   }
 
   async updateStatus(

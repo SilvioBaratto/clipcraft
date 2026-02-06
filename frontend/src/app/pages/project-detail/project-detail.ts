@@ -93,8 +93,6 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
 
   // Download state
   isDownloading = signal(false);
-  downloadProgress = signal(0);
-  downloadTotal = signal(0);
 
   // Fullscreen state
   expandedScene = signal<string | null>(null);
@@ -306,51 +304,10 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     if (!p || this.isDownloading()) return;
 
     this.isDownloading.set(true);
-    this.downloadProgress.set(0);
 
     try {
-      const JSZip = (await import('jszip')).default;
-      const html2canvas = (await import('html2canvas')).default;
-      const zip = new JSZip();
-
-      // Collect all items to render
-      const items: { folder: string; name: string; html: string; width: number; height: number }[] = [];
-
-      for (const anim of this.animations()) {
-        for (const scene of anim.scenes) {
-          if (scene.generatedHtml) {
-            items.push({ folder: 'animations', name: `scene-${scene.sceneNumber}.png`, html: scene.generatedHtml, width: 1920, height: 1080 });
-          }
-        }
-      }
-
-      for (const carousel of this.carousels()) {
-        const [w, h] = (carousel.canvas || '1080x1350').split('x').map(Number);
-        for (const slide of carousel.slides) {
-          if (slide.generatedHtml) {
-            items.push({ folder: 'carousel', name: `slide-${slide.slideNumber}.png`, html: slide.generatedHtml, width: w, height: h });
-          }
-        }
-      }
-
-      for (const preview of this.previews()) {
-        if (preview.generatedHtml) {
-          items.push({ folder: 'previews', name: `${preview.platform}.png`, html: preview.generatedHtml, width: preview.width, height: preview.height });
-        }
-      }
-
-      this.downloadTotal.set(items.length);
-
-      // Render each item sequentially
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        const blob = await this.renderHtmlToPng(html2canvas, item.html, item.width, item.height);
-        zip.file(`${item.folder}/${item.name}`, blob);
-        this.downloadProgress.set(i + 1);
-      }
-
-      const zipBlob = await zip.generateAsync({ type: 'blob' });
-      const url = URL.createObjectURL(zipBlob);
+      const blob = await firstValueFrom(this.apiService.downloadProjectZip(p.id));
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `${p.folderName || p.name}.zip`;
@@ -361,45 +318,6 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     } finally {
       this.isDownloading.set(false);
     }
-  }
-
-  private renderHtmlToPng(html2canvas: typeof import('html2canvas').default, html: string, width: number, height: number): Promise<Blob> {
-    return new Promise((resolve, reject) => {
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.left = '-99999px';
-      iframe.style.top = '0';
-      iframe.style.width = `${width}px`;
-      iframe.style.height = `${height}px`;
-      iframe.style.border = 'none';
-      iframe.srcdoc = html;
-
-      document.body.appendChild(iframe);
-
-      iframe.onload = async () => {
-        try {
-          // Wait for fonts to load inside the iframe
-          await iframe.contentDocument?.fonts.ready;
-          await new Promise((r) => setTimeout(r, 500));
-
-          const body = iframe.contentDocument?.body;
-          if (!body) throw new Error('Cannot access iframe body');
-
-          const canvas = await html2canvas(body, { width, height, scale: 1, useCORS: true, allowTaint: true });
-
-          canvas.toBlob(
-            (blob) => {
-              document.body.removeChild(iframe);
-              blob ? resolve(blob) : reject(new Error('Failed to create PNG blob'));
-            },
-            'image/png',
-          );
-        } catch (err) {
-          document.body.removeChild(iframe);
-          reject(err);
-        }
-      };
-    });
   }
 
   goBack() {

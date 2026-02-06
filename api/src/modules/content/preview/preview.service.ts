@@ -152,13 +152,13 @@ export class PreviewService {
         emoji,
         label,
       ),
-      // TikTok preview (9:16 portrait)
+      // TikTok preview (3:4 portrait)
       this.generateAndSavePreview(
         projectId,
         mainText,
         'tiktok',
         1080,
-        1920,
+        1440,
         colorAccent,
         secondaryAccent,
         highlightText,

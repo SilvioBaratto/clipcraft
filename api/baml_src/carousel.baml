@@ -9,9 +9,9 @@ enum SlideType {
 class CarouselSlide {
   slide_number int
   slide_type SlideType
-  main_text string @description("Italian text, max 12 words")
-  highlight_text string? @description("Italian text to highlight, max 8 words")
-  sub_text string? @description("Italian secondary text, max 10 words")
+  main_text string @description("Italian text, short")
+  highlight_text string? @description("Italian text to highlight, short")
+  sub_text string? @description("Italian secondary text, short")
   data_visual string? @description("e.g. '85%', 'bar chart'")
   emoji string?
   label string? @description("e.g. 'Domanda', 'Takeaway'")
@@ -49,8 +49,6 @@ function StructureCarousel(
     - Slides 2-N: Content (ONE concept per slide)
     - Last slide: CTA with main_text = "Video completo nel profilo"
     - All text in ITALIAN
-    - main_text: max 12 words
-    - highlight_text: max 8 words
 
     ---
 
@@ -66,7 +64,6 @@ function StructureCarousel(
 
     LAYOUT:
     - Content area: top 160px, left 120px, right 120px
-    - Bottom row: left >= 120px, right <= 80px from edge, bottom ~90px
 
     STYLE (Neo-Brutalist):
     - Hard shadows: box-shadow 6-8px, NO blur (e.g. "8px 8px 0 #000")

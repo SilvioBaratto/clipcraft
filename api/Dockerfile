@@ -1,5 +1,5 @@
 # Stage 1: Build NestJS application
-FROM node:22-alpine AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
@@ -22,9 +22,21 @@ RUN npx prisma generate
 RUN npm run build
 
 # Stage 2: Production image
-FROM node:22-alpine AS production
+FROM node:22-slim AS production
 
 WORKDIR /app
+
+# Install system Chromium and dependencies (used by playwright-core)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    chromium \
+    fonts-liberation \
+    fonts-noto-color-emoji \
+    wget \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Point playwright-core at the system Chromium
+ENV CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Copy package files
 COPY package*.json ./
@@ -42,8 +54,8 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
 # Create non-root user for security
-RUN addgroup -g 1001 -S nestjs && \
-    adduser -u 1001 -S nestjs -G nestjs && \
+RUN addgroup --gid 1001 nestjs && \
+    adduser --uid 1001 --ingroup nestjs --disabled-password --gecos "" nestjs && \
     chown -R nestjs:nestjs /app
 
 # Switch to non-root user
