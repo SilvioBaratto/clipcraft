@@ -172,27 +172,90 @@
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <div class="p-6">
         @if (!isGenerating() && currentStep() === 'idle') {
-          <!-- Generate Button -->
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h3 class="text-lg font-semibold text-slate-900">Generate Content</h3>
-              <p class="text-sm text-slate-500 mt-1">
-                Generate all content assets from your script
-              </p>
+          <div class="space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h3 class="text-lg font-semibold text-slate-900">Generate Content</h3>
+                <p class="text-sm text-slate-500 mt-1">
+                  Select which content to generate from your script
+                </p>
+              </div>
+              <button
+                (click)="startGeneration()"
+                [disabled]="!hasAnySelected()"
+                class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl shadow-lg shadow-violet-500/30 hover:from-violet-700 hover:to-indigo-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                @if (hasAllSelected()) {
+                  @if (isAllGenerated()) {
+                    Regenerate All
+                  } @else {
+                    Generate All
+                  }
+                } @else {
+                  Generate Selected
+                }
+              </button>
             </div>
-            <button
-              (click)="startGeneration()"
-              class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl shadow-lg shadow-violet-500/30 hover:from-violet-700 hover:to-indigo-700 transition-all"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-              </svg>
-              @if (isAllGenerated()) {
-                Regenerate All
-              } @else {
-                Generate All
+
+            <!-- Type selection toggles -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              @for (card of contentCards; track card.type) {
+                <button
+                  (click)="toggleType(card.type)"
+                  class="flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left"
+                  [class]="{
+                    'border-emerald-400 bg-emerald-50': card.color === 'emerald' && isTypeSelected(card.type),
+                    'border-blue-400 bg-blue-50': card.color === 'blue' && isTypeSelected(card.type),
+                    'border-violet-400 bg-violet-50': card.color === 'violet' && isTypeSelected(card.type),
+                    'border-slate-200 bg-white hover:border-slate-300': !isTypeSelected(card.type)
+                  }"
+                >
+                  <!-- Checkbox -->
+                  <div
+                    class="w-5 h-5 rounded flex items-center justify-center shrink-0 transition-colors"
+                    [class]="{
+                      'bg-emerald-500': card.color === 'emerald' && isTypeSelected(card.type),
+                      'bg-blue-500': card.color === 'blue' && isTypeSelected(card.type),
+                      'bg-violet-500': card.color === 'violet' && isTypeSelected(card.type),
+                      'border-2 border-slate-300': !isTypeSelected(card.type)
+                    }"
+                  >
+                    @if (isTypeSelected(card.type)) {
+                      <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    }
+                  </div>
+
+                  <div class="min-w-0">
+                    <span
+                      class="text-sm font-medium block truncate"
+                      [class]="{
+                        'text-slate-900': isTypeSelected(card.type),
+                        'text-slate-500': !isTypeSelected(card.type)
+                      }"
+                    >{{ card.title }}</span>
+                    <span class="text-xs text-slate-400 block truncate">{{ card.description }}</span>
+                  </div>
+                </button>
               }
-            </button>
+            </div>
+
+            <!-- Select all / none -->
+            <div class="flex items-center gap-3 text-xs">
+              <button
+                (click)="selectAllTypes()"
+                class="text-violet-600 hover:text-violet-800 font-medium transition-colors"
+              >Select all</button>
+              <span class="text-slate-300">|</span>
+              <button
+                (click)="clearSelection()"
+                class="text-slate-500 hover:text-slate-700 font-medium transition-colors"
+              >Clear</button>
+            </div>
           </div>
         } @else {
           <!-- Progress Section -->
@@ -216,79 +279,82 @@
               ></div>
             </div>
 
-            <!-- Step indicators -->
-            <div class="grid grid-cols-3 gap-3">
-              <!-- Carousel step -->
-              <div class="flex items-center gap-2 p-3 rounded-lg"
-                [class]="{
-                  'bg-violet-50': currentStep() === 'carousel',
-                  'bg-emerald-50': currentStep() === 'animations' || currentStep() === 'previews' || currentStep() === 'complete',
-                  'bg-slate-50': currentStep() !== 'carousel' && currentStep() !== 'animations' && currentStep() !== 'previews' && currentStep() !== 'complete'
-                }">
-                @if (currentStep() === 'carousel') {
-                  <div class="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0"></div>
-                } @else if (currentStep() === 'animations' || currentStep() === 'previews' || currentStep() === 'complete') {
-                  <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                } @else {
-                  <div class="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0"></div>
-                }
-                <span class="text-sm font-medium truncate"
+            <!-- Step indicators (only show selected steps) -->
+            <div class="flex gap-3">
+              @if (isTypeSelected('carousel')) {
+                <div class="flex-1 flex items-center gap-2 p-3 rounded-lg"
                   [class]="{
-                    'text-violet-700': currentStep() === 'carousel',
-                    'text-emerald-700': currentStep() === 'animations' || currentStep() === 'previews' || currentStep() === 'complete',
-                    'text-slate-400': currentStep() !== 'carousel' && currentStep() !== 'animations' && currentStep() !== 'previews' && currentStep() !== 'complete'
-                  }">Carousel</span>
-              </div>
+                    'bg-violet-50': currentStep() === 'carousel',
+                    'bg-emerald-50': currentStep() === 'animations' || currentStep() === 'previews' || currentStep() === 'complete',
+                    'bg-slate-50': currentStep() !== 'carousel' && currentStep() !== 'animations' && currentStep() !== 'previews' && currentStep() !== 'complete'
+                  }">
+                  @if (currentStep() === 'carousel') {
+                    <div class="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0"></div>
+                  } @else if (currentStep() === 'animations' || currentStep() === 'previews' || currentStep() === 'complete') {
+                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  } @else {
+                    <div class="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0"></div>
+                  }
+                  <span class="text-sm font-medium truncate"
+                    [class]="{
+                      'text-violet-700': currentStep() === 'carousel',
+                      'text-emerald-700': currentStep() === 'animations' || currentStep() === 'previews' || currentStep() === 'complete',
+                      'text-slate-400': currentStep() !== 'carousel' && currentStep() !== 'animations' && currentStep() !== 'previews' && currentStep() !== 'complete'
+                    }">Carousel</span>
+                </div>
+              }
 
-              <!-- Animations step -->
-              <div class="flex items-center gap-2 p-3 rounded-lg"
-                [class]="{
-                  'bg-violet-50': currentStep() === 'animations',
-                  'bg-emerald-50': currentStep() === 'previews' || currentStep() === 'complete',
-                  'bg-slate-50': currentStep() !== 'animations' && currentStep() !== 'previews' && currentStep() !== 'complete'
-                }">
-                @if (currentStep() === 'animations') {
-                  <div class="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0"></div>
-                } @else if (currentStep() === 'previews' || currentStep() === 'complete') {
-                  <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                } @else {
-                  <div class="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0"></div>
-                }
-                <span class="text-sm font-medium truncate"
+              @if (isTypeSelected('animations')) {
+                <div class="flex-1 flex items-center gap-2 p-3 rounded-lg"
                   [class]="{
-                    'text-violet-700': currentStep() === 'animations',
-                    'text-emerald-700': currentStep() === 'previews' || currentStep() === 'complete',
-                    'text-slate-400': currentStep() !== 'animations' && currentStep() !== 'previews' && currentStep() !== 'complete'
-                  }">Animations</span>
-              </div>
+                    'bg-violet-50': currentStep() === 'animations',
+                    'bg-emerald-50': currentStep() === 'previews' || currentStep() === 'complete',
+                    'bg-slate-50': currentStep() !== 'animations' && currentStep() !== 'previews' && currentStep() !== 'complete'
+                  }">
+                  @if (currentStep() === 'animations') {
+                    <div class="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0"></div>
+                  } @else if (currentStep() === 'previews' || currentStep() === 'complete') {
+                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  } @else {
+                    <div class="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0"></div>
+                  }
+                  <span class="text-sm font-medium truncate"
+                    [class]="{
+                      'text-violet-700': currentStep() === 'animations',
+                      'text-emerald-700': currentStep() === 'previews' || currentStep() === 'complete',
+                      'text-slate-400': currentStep() !== 'animations' && currentStep() !== 'previews' && currentStep() !== 'complete'
+                    }">Animations</span>
+                </div>
+              }
 
-              <!-- Previews step -->
-              <div class="flex items-center gap-2 p-3 rounded-lg"
-                [class]="{
-                  'bg-violet-50': currentStep() === 'previews',
-                  'bg-emerald-50': currentStep() === 'complete',
-                  'bg-slate-50': currentStep() !== 'previews' && currentStep() !== 'complete'
-                }">
-                @if (currentStep() === 'previews') {
-                  <div class="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0"></div>
-                } @else if (currentStep() === 'complete') {
-                  <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                } @else {
-                  <div class="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0"></div>
-                }
-                <span class="text-sm font-medium truncate"
+              @if (isTypeSelected('preview')) {
+                <div class="flex-1 flex items-center gap-2 p-3 rounded-lg"
                   [class]="{
-                    'text-violet-700': currentStep() === 'previews',
-                    'text-emerald-700': currentStep() === 'complete',
-                    'text-slate-400': currentStep() !== 'previews' && currentStep() !== 'complete'
-                  }">Previews</span>
-              </div>
+                    'bg-violet-50': currentStep() === 'previews',
+                    'bg-emerald-50': currentStep() === 'complete',
+                    'bg-slate-50': currentStep() !== 'previews' && currentStep() !== 'complete'
+                  }">
+                  @if (currentStep() === 'previews') {
+                    <div class="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0"></div>
+                  } @else if (currentStep() === 'complete') {
+                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  } @else {
+                    <div class="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0"></div>
+                  }
+                  <span class="text-sm font-medium truncate"
+                    [class]="{
+                      'text-violet-700': currentStep() === 'previews',
+                      'text-emerald-700': currentStep() === 'complete',
+                      'text-slate-400': currentStep() !== 'previews' && currentStep() !== 'complete'
+                    }">Previews</span>
+                </div>
+              }
             </div>
 
             <!-- Error Message -->

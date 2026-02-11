@@ -43,16 +43,25 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   animations = signal<Animation[]>([]);
   previews = signal<Preview[]>([]);
 
+  // Ordered steps for the selected types
+  private activeSteps = computed<GenerationStep[]>(() => {
+    const selected = this.selectedTypes();
+    const steps: GenerationStep[] = [];
+    if (selected.has('carousel')) steps.push('carousel');
+    if (selected.has('animations')) steps.push('animations');
+    if (selected.has('preview')) steps.push('previews');
+    return steps;
+  });
+
   // Computed progress percentage
   progress = computed(() => {
-    switch (this.currentStep()) {
-      case 'idle': return 0;
-      case 'carousel': return 20;
-      case 'animations': return 50;
-      case 'previews': return 80;
-      case 'complete': return 100;
-      default: return 0;
-    }
+    const step = this.currentStep();
+    if (step === 'idle') return 0;
+    if (step === 'complete') return 100;
+    const steps = this.activeSteps();
+    const idx = steps.indexOf(step);
+    if (idx === -1) return 0;
+    return Math.round(((idx + 0.5) / steps.length) * 100);
   });
 
   // Label for current generation step
@@ -90,6 +99,36 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       description: 'Instagram & TikTok thumbnails',
     },
   ];
+
+  // Generation selection
+  selectedTypes = signal<Set<ContentType>>(new Set(['animations', 'carousel', 'preview']));
+
+  isTypeSelected(type: ContentType): boolean {
+    return this.selectedTypes().has(type);
+  }
+
+  toggleType(type: ContentType) {
+    this.selectedTypes.update((set) => {
+      const next = new Set(set);
+      if (next.has(type)) {
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
+      return next;
+    });
+  }
+
+  selectAllTypes() {
+    this.selectedTypes.set(new Set(['animations', 'carousel', 'preview']));
+  }
+
+  clearSelection() {
+    this.selectedTypes.set(new Set());
+  }
+
+  hasAnySelected = computed(() => this.selectedTypes().size > 0);
+  hasAllSelected = computed(() => this.selectedTypes().size === 3);
 
   // Download state
   isDownloading = signal(false);
@@ -384,26 +423,30 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     return p ? p.hasCarousel && p.hasAnimations && p.hasPreview : false;
   }
 
-  // Start the generation pipeline (step-by-step)
+  // Start the generation pipeline (only selected types)
   async startGeneration() {
     const p = this.project();
-    if (!p || this.isGenerating()) return;
+    if (!p || this.isGenerating() || !this.hasAnySelected()) return;
 
     this.isGenerating.set(true);
     this.generationError.set(null);
+    const selected = this.selectedTypes();
 
     try {
-      // Step 1: Carousel
-      this.currentStep.set('carousel');
-      await firstValueFrom(this.apiService.generateProjectCarousel(p.id));
+      if (selected.has('carousel')) {
+        this.currentStep.set('carousel');
+        await firstValueFrom(this.apiService.generateProjectCarousel(p.id));
+      }
 
-      // Step 2: Animations
-      this.currentStep.set('animations');
-      await firstValueFrom(this.apiService.generateProjectAnimations(p.id));
+      if (selected.has('animations')) {
+        this.currentStep.set('animations');
+        await firstValueFrom(this.apiService.generateProjectAnimations(p.id));
+      }
 
-      // Step 3: Previews
-      this.currentStep.set('previews');
-      await firstValueFrom(this.apiService.generateProjectPreviews(p.id));
+      if (selected.has('preview')) {
+        this.currentStep.set('previews');
+        await firstValueFrom(this.apiService.generateProjectPreviews(p.id));
+      }
 
       // Done — fetch final project state
       this.currentStep.set('complete');
@@ -414,9 +457,11 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       this.animations.set(updated.animations || []);
       this.previews.set(updated.previews || []);
 
-      // Reset to idle and open animations tab
+      // Reset to idle and open the first generated tab
       this.currentStep.set('idle');
-      this.activeTab.set('animations');
+      if (selected.has('animations')) this.activeTab.set('animations');
+      else if (selected.has('carousel')) this.activeTab.set('carousel');
+      else if (selected.has('preview')) this.activeTab.set('preview');
     } catch (error) {
       console.error('Generation failed:', error);
       this.generationError.set(error instanceof Error ? error.message : 'Generation failed');
