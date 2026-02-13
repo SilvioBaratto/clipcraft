@@ -45,7 +45,7 @@
             Preview
           </span>
         }
-        @if (isAllGenerated()) {
+        @if (hasAnyGenerated()) {
           <button
             (click)="downloadAllAsPng()"
             [disabled]="isDownloading()"

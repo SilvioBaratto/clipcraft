@@ -423,6 +423,12 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     return p ? p.hasCarousel && p.hasAnimations && p.hasPreview : false;
   }
 
+  // Check if any content has been generated
+  hasAnyGenerated(): boolean {
+    const p = this.project();
+    return p ? p.hasCarousel || p.hasAnimations || p.hasPreview : false;
+  }
+
   // Start the generation pipeline (only selected types)
   async startGeneration() {
     const p = this.project();
