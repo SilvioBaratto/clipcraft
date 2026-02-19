@@ -55,6 +55,17 @@ export class ProjectsController {
     return this.projectsService.findById(id);
   }
 
+  @Patch(':id/script')
+  @ApiOperation({ summary: 'Update project script' })
+  @ApiResponse({ status: 200, type: ProjectResponseDto })
+  @ApiResponse({ status: 404, description: 'Project not found' })
+  async updateScript(
+    @Param('id') id: string,
+    @Body() body: { sourceScript: string },
+  ): Promise<ProjectResponseDto> {
+    return this.projectsService.updateScript(id, body.sourceScript);
+  }
+
   @Patch(':id/status')
   @ApiOperation({
     summary: 'Update project status',

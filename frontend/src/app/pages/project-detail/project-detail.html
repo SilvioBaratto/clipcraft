@@ -651,7 +651,8 @@
       <div class="p-6">
         @if (isEditingScript()) {
           <textarea
-            [(ngModel)]="editedScript"
+            [ngModel]="editedScript()"
+            (ngModelChange)="editedScript.set($event)"
             rows="16"
             class="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
           ></textarea>

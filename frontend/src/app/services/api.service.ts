@@ -171,6 +171,10 @@ export class ApiService {
     });
   }
 
+  updateProjectScript(id: string, sourceScript: string): Observable<ProjectResponse> {
+    return this.http.patch<ProjectResponse>(`${this.baseUrl}/projects/${id}/script`, { sourceScript });
+  }
+
   // Update project status after generation
   updateProjectStatus(
     projectId: string,

@@ -288,6 +288,28 @@ export class ProjectsService {
     return this.toResponseDto(project as ProjectWithRelations);
   }
 
+  async updateScript(id: string, sourceScript: string): Promise<ProjectResponseDto> {
+    const project = await this.prisma.project.update({
+      where: { id },
+      data: { sourceScript },
+      include: {
+        carousels: {
+          include: { slides: { orderBy: { slideNumber: 'asc' } } },
+          orderBy: { createdAt: 'desc' },
+        },
+        animations: {
+          include: { scenes: { orderBy: { sceneNumber: 'asc' } } },
+          orderBy: { createdAt: 'desc' },
+        },
+        previews: {
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    return this.toResponseDto(project as ProjectWithRelations);
+  }
+
   /**
    * Generate all content (carousel, animations, and previews) for a project
    */

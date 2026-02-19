@@ -393,10 +393,16 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     this.editedScript.set(this.scriptContent());
   }
 
-  saveScript() {
-    // In real implementation, parse and update the script
+  async saveScript() {
+    const p = this.project();
+    if (!p) return;
+    try {
+      const updated = await firstValueFrom(this.apiService.updateProjectScript(p.id, this.editedScript()));
+      this.project.set(this.mapResponseToProject(updated));
+    } catch (error) {
+      console.error('Failed to save script:', error);
+    }
     this.isEditingScript.set(false);
-    // For mock, just close the editor
   }
 
   getCardColorClasses(color: string, isAvailable: boolean): Record<string, boolean> {
