@@ -289,9 +289,12 @@ export class ProjectsService {
   }
 
   async updateScript(id: string, sourceScript: string): Promise<ProjectResponseDto> {
+    const hookMatch = sourceScript.match(/^##\s*Hook\s*\n([\s\S]*?)(?=\n##|$)/im);
+    const hook = hookMatch ? hookMatch[1].trim() : undefined;
+
     const project = await this.prisma.project.update({
       where: { id },
-      data: { sourceScript },
+      data: { sourceScript, ...(hook !== undefined && { hook }) },
       include: {
         carousels: {
           include: { slides: { orderBy: { slideNumber: 'asc' } } },
