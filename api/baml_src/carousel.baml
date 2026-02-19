@@ -32,7 +32,7 @@ function StructureCarousel(
     canvas: string,
     ratio: string
 ) -> Carousel {
-  client CustomOpus46
+  client OpusWithFallback
   prompt #"
     {{ _.role("system") }}
 

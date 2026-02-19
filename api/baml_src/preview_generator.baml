@@ -15,7 +15,7 @@ function GeneratePreviewHTML(
     emoji: string?,
     label: string?
 ) -> string {
-  client CustomOpus46
+  client OpusWithFallback
   prompt #"
     {{ _.role("system") }}
 

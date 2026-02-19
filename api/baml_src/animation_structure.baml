@@ -45,7 +45,7 @@ class AnimationSet {
 function StructureAnimations(
   script: string
 ) -> AnimationSet {
-  client CustomOpus46
+  client OpusWithFallback
   prompt #"
     {{ _.role("system") }}
 

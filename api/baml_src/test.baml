@@ -10,7 +10,7 @@ function HelloWorld(name: string) -> string {
 
 // Test function for Opus 4.6
 function HelloWorldOpus46(name: string) -> string {
-  client CustomOpus46
+  client OpusWithFallback
   prompt #"
     {{ _.role("user") }}
     Say hello to {{ name }}. Keep it brief.
