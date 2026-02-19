@@ -28,11 +28,11 @@ client<llm> Gemini {
   }
 }
 
-// Claude Opus 4.5 - Most capable model (released Nov 2025)
-client<llm> CustomOpus45 {
+// Claude Opus 4.6 - Most intelligent model for agents and coding
+client<llm> CustomOpus46 {
   provider anthropic
   options {
-    model "claude-opus-4-5-20251101"
+    model "claude-opus-4-6"
     api_key env.ANTHROPIC_API_KEY
     max_tokens 16000
   }

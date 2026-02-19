@@ -16,7 +16,7 @@ function GenerateAnimationHTML(
   emoji: string?,
   label: string?
 ) -> string {
-  client Gemini
+  client CustomOpus46
   prompt #"
     {{ _.role("system") }}
 

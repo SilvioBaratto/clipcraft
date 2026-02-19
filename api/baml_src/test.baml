@@ -8,9 +8,9 @@ function HelloWorld(name: string) -> string {
   "#
 }
 
-// Test function for Opus 4.5
-function HelloWorldOpus45(name: string) -> string {
-  client CustomOpus45
+// Test function for Opus 4.6
+function HelloWorldOpus46(name: string) -> string {
+  client CustomOpus46
   prompt #"
     {{ _.role("user") }}
     Say hello to {{ name }}. Keep it brief.

@@ -15,7 +15,7 @@ function GeneratePreviewHTML(
     emoji: string?,
     label: string?
 ) -> string {
-  client Gemini
+  client CustomOpus46
   prompt #"
     {{ _.role("system") }}
 
