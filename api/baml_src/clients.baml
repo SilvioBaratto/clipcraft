@@ -20,7 +20,7 @@ client<llm> CustomGPT5mini {
 client<llm> Gemini {
   provider google-ai
   options {
-    model "gemini-3-pro-preview"
+    model "gemini-3.1-pro-preview"
     api_key env.GOOGLE_API_KEY
     generationConfig {
       maxOutputTokens 16000
