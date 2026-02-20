@@ -52,11 +52,18 @@
             class="inline-flex items-center gap-2 px-4 py-1.5 text-sm font-medium text-white bg-slate-800 hover:bg-slate-700 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             @if (isDownloading()) {
-              <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div
+                class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+              ></div>
               <span>Downloading...</span>
             } @else {
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                ></path>
               </svg>
               <span>Download PNG</span>
             }
@@ -183,10 +190,15 @@
               <button
                 (click)="startGeneration()"
                 [disabled]="!hasAnySelected()"
-                class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl shadow-lg shadow-violet-500/30 hover:from-violet-700 hover:to-indigo-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+                class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-linear-to-r from-violet-600 to-indigo-600 rounded-xl shadow-lg shadow-violet-500/30 hover:from-violet-700 hover:to-indigo-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  ></path>
                 </svg>
                 @if (hasAllSelected()) {
                   @if (isAllGenerated()) {
@@ -207,10 +219,13 @@
                   (click)="toggleType(card.type)"
                   class="flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left"
                   [class]="{
-                    'border-emerald-400 bg-emerald-50': card.color === 'emerald' && isTypeSelected(card.type),
-                    'border-blue-400 bg-blue-50': card.color === 'blue' && isTypeSelected(card.type),
-                    'border-violet-400 bg-violet-50': card.color === 'violet' && isTypeSelected(card.type),
-                    'border-slate-200 bg-white hover:border-slate-300': !isTypeSelected(card.type)
+                    'border-emerald-400 bg-emerald-50':
+                      card.color === 'emerald' && isTypeSelected(card.type),
+                    'border-blue-400 bg-blue-50':
+                      card.color === 'blue' && isTypeSelected(card.type),
+                    'border-violet-400 bg-violet-50':
+                      card.color === 'violet' && isTypeSelected(card.type),
+                    'border-slate-200 bg-white hover:border-slate-300': !isTypeSelected(card.type),
                   }"
                 >
                   <!-- Checkbox -->
@@ -220,12 +235,22 @@
                       'bg-emerald-500': card.color === 'emerald' && isTypeSelected(card.type),
                       'bg-blue-500': card.color === 'blue' && isTypeSelected(card.type),
                       'bg-violet-500': card.color === 'violet' && isTypeSelected(card.type),
-                      'border-2 border-slate-300': !isTypeSelected(card.type)
+                      'border-2 border-slate-300': !isTypeSelected(card.type),
                     }"
                   >
                     @if (isTypeSelected(card.type)) {
-                      <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                      <svg
+                        class="w-3.5 h-3.5 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="3"
+                          d="M5 13l4 4L19 7"
+                        ></path>
                       </svg>
                     }
                   </div>
@@ -235,10 +260,13 @@
                       class="text-sm font-medium block truncate"
                       [class]="{
                         'text-slate-900': isTypeSelected(card.type),
-                        'text-slate-500': !isTypeSelected(card.type)
+                        'text-slate-500': !isTypeSelected(card.type),
                       }"
-                    >{{ card.title }}</span>
-                    <span class="text-xs text-slate-400 block truncate">{{ card.description }}</span>
+                      >{{ card.title }}</span
+                    >
+                    <span class="text-xs text-slate-400 block truncate">{{
+                      card.description
+                    }}</span>
                   </div>
                 </button>
               }
@@ -249,12 +277,16 @@
               <button
                 (click)="selectAllTypes()"
                 class="text-violet-600 hover:text-violet-800 font-medium transition-colors"
-              >Select all</button>
+              >
+                Select all
+              </button>
               <span class="text-slate-300">|</span>
               <button
                 (click)="clearSelection()"
                 class="text-slate-500 hover:text-slate-700 font-medium transition-colors"
-              >Clear</button>
+              >
+                Clear
+              </button>
             </div>
           </div>
         } @else {
@@ -274,7 +306,7 @@
             <!-- Progress Bar -->
             <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
-                class="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-700 ease-out"
+                class="h-full bg-linear-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-700 ease-out"
                 [style.width.%]="progress()"
               ></div>
             </div>
@@ -282,77 +314,154 @@
             <!-- Step indicators (only show selected steps) -->
             <div class="flex gap-3">
               @if (isTypeSelected('carousel')) {
-                <div class="flex-1 flex items-center gap-2 p-3 rounded-lg"
+                <div
+                  class="flex-1 flex items-center gap-2 p-3 rounded-lg"
                   [class]="{
                     'bg-violet-50': currentStep() === 'carousel',
-                    'bg-emerald-50': currentStep() === 'animations' || currentStep() === 'previews' || currentStep() === 'complete',
-                    'bg-slate-50': currentStep() !== 'carousel' && currentStep() !== 'animations' && currentStep() !== 'previews' && currentStep() !== 'complete'
-                  }">
+                    'bg-emerald-50':
+                      currentStep() === 'animations' ||
+                      currentStep() === 'previews' ||
+                      currentStep() === 'complete',
+                    'bg-slate-50':
+                      currentStep() !== 'carousel' &&
+                      currentStep() !== 'animations' &&
+                      currentStep() !== 'previews' &&
+                      currentStep() !== 'complete',
+                  }"
+                >
                   @if (currentStep() === 'carousel') {
-                    <div class="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0"></div>
-                  } @else if (currentStep() === 'animations' || currentStep() === 'previews' || currentStep() === 'complete') {
-                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    <div
+                      class="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0"
+                    ></div>
+                  } @else if (
+                    currentStep() === 'animations' ||
+                    currentStep() === 'previews' ||
+                    currentStep() === 'complete'
+                  ) {
+                    <svg
+                      class="w-5 h-5 text-emerald-600 shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"
+                      ></path>
                     </svg>
                   } @else {
                     <div class="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0"></div>
                   }
-                  <span class="text-sm font-medium truncate"
+                  <span
+                    class="text-sm font-medium truncate"
                     [class]="{
                       'text-violet-700': currentStep() === 'carousel',
-                      'text-emerald-700': currentStep() === 'animations' || currentStep() === 'previews' || currentStep() === 'complete',
-                      'text-slate-400': currentStep() !== 'carousel' && currentStep() !== 'animations' && currentStep() !== 'previews' && currentStep() !== 'complete'
-                    }">Carousel</span>
+                      'text-emerald-700':
+                        currentStep() === 'animations' ||
+                        currentStep() === 'previews' ||
+                        currentStep() === 'complete',
+                      'text-slate-400':
+                        currentStep() !== 'carousel' &&
+                        currentStep() !== 'animations' &&
+                        currentStep() !== 'previews' &&
+                        currentStep() !== 'complete',
+                    }"
+                    >Carousel</span
+                  >
                 </div>
               }
 
               @if (isTypeSelected('animations')) {
-                <div class="flex-1 flex items-center gap-2 p-3 rounded-lg"
+                <div
+                  class="flex-1 flex items-center gap-2 p-3 rounded-lg"
                   [class]="{
                     'bg-violet-50': currentStep() === 'animations',
                     'bg-emerald-50': currentStep() === 'previews' || currentStep() === 'complete',
-                    'bg-slate-50': currentStep() !== 'animations' && currentStep() !== 'previews' && currentStep() !== 'complete'
-                  }">
+                    'bg-slate-50':
+                      currentStep() !== 'animations' &&
+                      currentStep() !== 'previews' &&
+                      currentStep() !== 'complete',
+                  }"
+                >
                   @if (currentStep() === 'animations') {
-                    <div class="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0"></div>
+                    <div
+                      class="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0"
+                    ></div>
                   } @else if (currentStep() === 'previews' || currentStep() === 'complete') {
-                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    <svg
+                      class="w-5 h-5 text-emerald-600 shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"
+                      ></path>
                     </svg>
                   } @else {
                     <div class="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0"></div>
                   }
-                  <span class="text-sm font-medium truncate"
+                  <span
+                    class="text-sm font-medium truncate"
                     [class]="{
                       'text-violet-700': currentStep() === 'animations',
-                      'text-emerald-700': currentStep() === 'previews' || currentStep() === 'complete',
-                      'text-slate-400': currentStep() !== 'animations' && currentStep() !== 'previews' && currentStep() !== 'complete'
-                    }">Animations</span>
+                      'text-emerald-700':
+                        currentStep() === 'previews' || currentStep() === 'complete',
+                      'text-slate-400':
+                        currentStep() !== 'animations' &&
+                        currentStep() !== 'previews' &&
+                        currentStep() !== 'complete',
+                    }"
+                    >Animations</span
+                  >
                 </div>
               }
 
               @if (isTypeSelected('preview')) {
-                <div class="flex-1 flex items-center gap-2 p-3 rounded-lg"
+                <div
+                  class="flex-1 flex items-center gap-2 p-3 rounded-lg"
                   [class]="{
                     'bg-violet-50': currentStep() === 'previews',
                     'bg-emerald-50': currentStep() === 'complete',
-                    'bg-slate-50': currentStep() !== 'previews' && currentStep() !== 'complete'
-                  }">
+                    'bg-slate-50': currentStep() !== 'previews' && currentStep() !== 'complete',
+                  }"
+                >
                   @if (currentStep() === 'previews') {
-                    <div class="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0"></div>
+                    <div
+                      class="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0"
+                    ></div>
                   } @else if (currentStep() === 'complete') {
-                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    <svg
+                      class="w-5 h-5 text-emerald-600 shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"
+                      ></path>
                     </svg>
                   } @else {
                     <div class="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0"></div>
                   }
-                  <span class="text-sm font-medium truncate"
+                  <span
+                    class="text-sm font-medium truncate"
                     [class]="{
                       'text-violet-700': currentStep() === 'previews',
                       'text-emerald-700': currentStep() === 'complete',
-                      'text-slate-400': currentStep() !== 'previews' && currentStep() !== 'complete'
-                    }">Previews</span>
+                      'text-slate-400':
+                        currentStep() !== 'previews' && currentStep() !== 'complete',
+                    }"
+                    >Previews</span
+                  >
                 </div>
               }
             </div>
@@ -362,7 +471,12 @@
               <div class="p-4 bg-red-50 border border-red-200 rounded-xl">
                 <div class="flex items-center gap-2 text-red-700">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    ></path>
                   </svg>
                   <span class="text-sm font-medium">{{ generationError() }}</span>
                 </div>
@@ -374,9 +488,16 @@
               <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
                 <div class="flex items-center gap-2 text-emerald-700">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    ></path>
                   </svg>
-                  <span class="text-sm font-medium">All content has been generated successfully!</span>
+                  <span class="text-sm font-medium"
+                    >All content has been generated successfully!</span
+                  >
                 </div>
               </div>
             }
@@ -427,7 +548,9 @@
               <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                 @if (animations().length > 0 && animations()[0].scenes.length > 0) {
                   @for (scene of animations()[0].scenes; track scene.id) {
-                    <div class="group/scene relative rounded-xl overflow-hidden border border-emerald-200 shadow-sm">
+                    <div
+                      class="group/scene relative rounded-xl overflow-hidden border border-emerald-200 shadow-sm"
+                    >
                       <div
                         appScaledIframe
                         [contentWidth]="1920"
@@ -453,12 +576,24 @@
                           class="absolute top-2 right-2 z-10 p-1.5 rounded-lg bg-black/50 text-white opacity-0 group-hover/scene:opacity-100 hover:bg-black/70 transition-all cursor-pointer"
                           [title]="'Expand Scene ' + scene.sceneNumber"
                         >
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"></path>
+                          <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"
+                            ></path>
                           </svg>
                         </button>
                       }
-                      <div class="absolute bottom-2 left-2 px-2 py-1 bg-emerald-600 text-white text-xs font-medium rounded z-10">
+                      <div
+                        class="absolute bottom-2 left-2 px-2 py-1 bg-emerald-600 text-white text-xs font-medium rounded z-10"
+                      >
                         Scene {{ scene.sceneNumber }}
                       </div>
                     </div>
@@ -466,7 +601,7 @@
                 } @else {
                   @for (i of [1, 2, 3, 4, 5, 6]; track i) {
                     <div
-                      class="aspect-video bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl flex items-center justify-center border border-emerald-200"
+                      class="aspect-video bg-linear-to-br from-emerald-50 to-emerald-100 rounded-xl flex items-center justify-center border border-emerald-200"
                     >
                       <span class="text-emerald-600 font-medium">Scene {{ i }}</span>
                     </div>
@@ -478,7 +613,9 @@
               <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                 @if (carousels().length > 0 && carousels()[0].slides.length > 0) {
                   @for (slide of carousels()[0].slides; track slide.id) {
-                    <div class="relative rounded-xl overflow-hidden border border-blue-200 shadow-sm">
+                    <div
+                      class="relative rounded-xl overflow-hidden border border-blue-200 shadow-sm"
+                    >
                       <div
                         appScaledIframe
                         [contentWidth]="1080"
@@ -494,11 +631,15 @@
                         }
                       </div>
                       @if (!slide.generatedHtml) {
-                        <div class="aspect-[4/5] bg-blue-50 flex items-center justify-center p-4">
-                          <span class="text-blue-600 font-medium text-center text-sm">{{ slide.mainText }}</span>
+                        <div class="aspect-4/5 bg-blue-50 flex items-center justify-center p-4">
+                          <span class="text-blue-600 font-medium text-center text-sm">{{
+                            slide.mainText
+                          }}</span>
                         </div>
                       }
-                      <div class="absolute bottom-2 left-2 px-2 py-1 bg-blue-600 text-white text-xs font-medium rounded z-10">
+                      <div
+                        class="absolute bottom-2 left-2 px-2 py-1 bg-blue-600 text-white text-xs font-medium rounded z-10"
+                      >
                         Slide {{ slide.slideNumber }}
                       </div>
                     </div>
@@ -506,7 +647,7 @@
                 } @else {
                   @for (i of [1, 2, 3, 4, 5]; track i) {
                     <div
-                      class="aspect-[4/5] bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center border border-blue-200"
+                      class="aspect-4/5 bg-linear-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center border border-blue-200"
                     >
                       <span class="text-blue-600 font-medium">Slide {{ i }}</span>
                     </div>
@@ -518,7 +659,9 @@
               <div class="flex flex-wrap gap-6 items-end">
                 @if (previews().length > 0) {
                   @for (preview of previews(); track preview.id) {
-                    <div class="relative rounded-xl overflow-hidden border border-violet-200 shadow-sm w-36">
+                    <div
+                      class="relative rounded-xl overflow-hidden border border-violet-200 shadow-sm w-36"
+                    >
                       <div
                         appScaledIframe
                         [contentWidth]="preview.width"
@@ -534,15 +677,18 @@
                         }
                       </div>
                       @if (!preview.generatedHtml) {
-                        <div class="aspect-[9/16] bg-violet-50 flex items-center justify-center p-4">
-                          <span class="text-violet-600 font-medium text-center text-sm">{{ preview.mainText }}</span>
+                        <div class="aspect-9/16 bg-violet-50 flex items-center justify-center p-4">
+                          <span class="text-violet-600 font-medium text-center text-sm">{{
+                            preview.mainText
+                          }}</span>
                         </div>
                       }
                       <div
                         class="absolute bottom-2 left-2 px-2 py-1 text-white text-xs font-medium rounded z-10"
                         [class]="{
-                          'bg-gradient-to-r from-purple-500 to-pink-500': preview.platform === 'instagram',
-                          'bg-black': preview.platform === 'tiktok'
+                          'bg-linear-to-r from-purple-500 to-pink-500':
+                            preview.platform === 'instagram',
+                          'bg-black': preview.platform === 'tiktok',
                         }"
                       >
                         {{ preview.platform === 'instagram' ? 'Instagram' : 'TikTok' }}
@@ -552,12 +698,12 @@
                 } @else {
                   <!-- Placeholders -->
                   <div
-                    class="w-36 aspect-[9/16] bg-gradient-to-br from-violet-50 to-violet-100 rounded-xl flex items-center justify-center border border-violet-200"
+                    class="w-36 aspect-9/16 bg-linear-to-br from-violet-50 to-violet-100 rounded-xl flex items-center justify-center border border-violet-200"
                   >
                     <span class="text-violet-600 font-medium text-sm">Instagram</span>
                   </div>
                   <div
-                    class="w-36 aspect-[9/16] bg-gradient-to-br from-violet-50 to-violet-100 rounded-xl flex items-center justify-center border border-violet-200"
+                    class="w-36 aspect-9/16 bg-linear-to-br from-violet-50 to-violet-100 rounded-xl flex items-center justify-center border border-violet-200"
                   >
                     <span class="text-violet-600 font-medium text-sm">TikTok</span>
                   </div>
@@ -583,12 +729,19 @@
           class="absolute top-4 right-4 z-10 p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer"
         >
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
           </svg>
         </button>
 
         <!-- Scene label -->
-        <div class="absolute top-4 left-4 z-10 px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg">
+        <div
+          class="absolute top-4 left-4 z-10 px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg"
+        >
           Scene {{ scene.sceneNumber }}
         </div>
 
@@ -597,7 +750,11 @@
           appScaledIframe
           [contentWidth]="1920"
           [contentHeight]="1080"
-          style="aspect-ratio: 1920 / 1080; width: min(100vw, calc(100vh * 1920 / 1080)); height: min(100vh, calc(100vw * 1080 / 1920));"
+          style="
+            aspect-ratio: 1920 / 1080;
+            width: min(100vw, calc(100vh * 1920 / 1080));
+            height: min(100vh, calc(100vw * 1080 / 1920));
+          "
         >
           @if (scene.generatedHtml) {
             <iframe
