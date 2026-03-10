@@ -56,7 +56,8 @@ COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/clie
 # Create non-root user for security
 RUN addgroup --gid 1001 nestjs && \
     adduser --uid 1001 --ingroup nestjs --disabled-password --gecos "" nestjs && \
-    chown -R nestjs:nestjs /app
+    chown nestjs:nestjs /app && \
+    chown -R nestjs:nestjs /app/dist /app/prisma /app/baml_src /app/baml_client 2>/dev/null || true
 
 # Switch to non-root user
 USER nestjs

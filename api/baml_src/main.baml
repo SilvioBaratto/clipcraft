@@ -18,7 +18,7 @@ class TikTokScript {
 function GenerateCompleteTikTokScript(
   raw_script: string
 ) -> TikTokScript {
-  client CustomGPT5
+  client CustomSonnet45
   prompt #"
     {{ _.role("system") }}
 

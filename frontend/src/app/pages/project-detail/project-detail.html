@@ -824,16 +824,9 @@
                 <p class="text-lg text-slate-900 font-medium">{{ project.script.hook }}</p>
               </div>
 
-              <!-- Script Sections -->
-              <div>
-                <h4 class="text-sm font-semibold text-violet-600 uppercase tracking-wide mb-2">
-                  Script
-                </h4>
-                <div class="space-y-3">
-                  @for (section of project.script.sections; track $index) {
-                    <p class="text-slate-700">{{ section.testo }}</p>
-                  }
-                </div>
+              <!-- Script Content -->
+              <div class="prose prose-slate max-w-none">
+                <pre class="text-slate-700 whitespace-pre-wrap font-sans text-sm bg-slate-50 p-4 rounded-lg">{{ rawSourceScript() }}</pre>
               </div>
             </div>
           </div>

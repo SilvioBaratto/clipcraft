@@ -48,13 +48,13 @@ client<llm> CustomSonnet45 {
   }
 }
 
-// Fallback chain: Opus 4.6 → Sonnet 4.5 → Gemini
+// Fallback chain: Opus 4.6 → Sonnet 4.5
 // Activates automatically on 429 rate-limit or any other provider error.
 // https://docs.boundaryml.com/docs/snippets/clients/fallback
 client<llm> OpusWithFallback {
   provider fallback
   options {
-    strategy [CustomOpus46, CustomSonnet45, Gemini]
+    strategy [CustomOpus46, CustomSonnet45]
   }
 }
 

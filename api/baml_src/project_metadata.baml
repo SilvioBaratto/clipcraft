@@ -14,7 +14,7 @@ class ProjectMetadata {
 function ExtractProjectMetadata(
   script: string
 ) -> ProjectMetadata {
-  client CustomGPT5mini
+  client CustomSonnet45
   prompt #"
     {{ _.role("system") }}
 

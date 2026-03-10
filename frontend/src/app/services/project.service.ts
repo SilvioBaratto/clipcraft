@@ -200,7 +200,7 @@ export class ProjectService {
     let cta = '';
 
     // Split by common section headers
-    const scriptMatch = sourceScript.match(/##\s*🎬\s*Script\s*\n([\s\S]*?)(?=##|$)/i);
+    const scriptMatch = sourceScript.match(/##\s*(?:🎬\s*)?Script\s*\n([\s\S]*?)(?=##|$)/i);
     const ctaMatch = sourceScript.match(/##\s*(?:📢|🎯)?\s*(?:CTA|Call to Action)\s*\n([\s\S]*?)(?=##|$)/i);
 
     if (scriptMatch) {

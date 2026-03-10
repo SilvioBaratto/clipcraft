@@ -29,6 +29,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   project = signal<Project | null>(null);
   isEditingScript = signal(false);
   editedScript = signal('');
+  rawSourceScript = signal('');
 
   // Active content tab
   activeTab = signal<ContentType | null>(null);
@@ -165,13 +166,9 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Computed script content for display
+  // Computed script content for display (just raw source)
   scriptContent = computed(() => {
-    const p = this.project();
-    if (!p) return '';
-
-    const sections = p.script.sections.map((s) => s.testo).join('\n\n');
-    return `## Hook\n${p.script.hook}\n\n## Script\n${sections}\n\n## CTA\n${p.script.cta}`;
+    return this.rawSourceScript();
   });
 
   async ngOnInit() {
@@ -182,7 +179,8 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
         const response = await firstValueFrom(this.apiService.getProject(projectId));
         const project = this.mapResponseToProject(response);
         this.project.set(project);
-        this.editedScript.set(this.scriptContent());
+        this.rawSourceScript.set(response.sourceScript ?? '');
+        this.editedScript.set(response.sourceScript ?? '');
         // Load structured content
         this.carousels.set(project.carousels || []);
         this.animations.set(project.animations || []);
@@ -285,7 +283,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   }
 
   private parseScriptSections(sourceScript: string): { testo: string }[] {
-    const scriptMatch = sourceScript.match(/##\s*🎬\s*Script\s*\n([\s\S]*?)(?=##|$)/i);
+    const scriptMatch = sourceScript.match(/##\s*(?:🎬\s*)?Script\s*\n([\s\S]*?)(?=##|$)/i);
     if (!scriptMatch) return [];
 
     const scriptContent = scriptMatch[1].trim();
@@ -307,7 +305,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     const ctaMatch = sourceScript.match(/##\s*(?:📢|🎯)?\s*(?:CTA|Call to Action)\s*\n([\s\S]*?)(?=##|$)/i);
     if (ctaMatch) return ctaMatch[1].trim();
 
-    const scriptMatch = sourceScript.match(/##\s*🎬\s*Script\s*\n([\s\S]*?)(?=##|$)/i);
+    const scriptMatch = sourceScript.match(/##\s*(?:🎬\s*)?Script\s*\n([\s\S]*?)(?=##|$)/i);
     if (scriptMatch) {
       const paragraphs = scriptMatch[1].trim().split(/\n\n+/).map((p) => p.trim()).filter((p) => p.length > 0);
       const lastParagraph = paragraphs[paragraphs.length - 1];

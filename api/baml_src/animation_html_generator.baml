@@ -16,7 +16,7 @@ function GenerateAnimationHTML(
   emoji: string?,
   label: string?
 ) -> string {
-  client OpusWithFallback
+  client CustomOpus46
   prompt #"
     {{ _.role("system") }}
 
