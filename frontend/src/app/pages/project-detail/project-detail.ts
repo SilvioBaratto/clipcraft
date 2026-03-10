@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, effect, ChangeDetectionStrategy, O
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { MarkdownComponent } from 'ngx-markdown';
 import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
 import { ScaledIframeDirective } from '../../directives/scaled-iframe.directive';
 import { ProjectService } from '../../services/project.service';
@@ -14,7 +15,7 @@ type GenerationStep = 'idle' | 'carousel' | 'animations' | 'previews' | 'complet
 
 @Component({
   selector: 'app-project-detail',
-  imports: [CommonModule, FormsModule, SafeHtmlPipe, ScaledIframeDirective],
+  imports: [CommonModule, FormsModule, MarkdownComponent, SafeHtmlPipe, ScaledIframeDirective],
   templateUrl: './project-detail.html',
   styleUrl: './project-detail.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
