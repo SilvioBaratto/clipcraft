@@ -2,49 +2,53 @@
 
 ![ClipCraft Demo](output.gif)
 
-AI-powered content studio that transforms scripts into ready-to-publish social media assets — animation scenes, Instagram carousels, and preview thumbnails — all generated and rendered server-side.
+AI-powered content studio that turns a raw video script into ready-to-publish **animation scenes**, and helps you plan the whole publishing calendar — all rendered server-side and delivered as PNGs.
 
 ---
 
 ## Overview
 
-ClipCraft takes a raw video script and runs it through a multi-stage AI pipeline to produce:
+ClipCraft has two halves:
+
+1. **Generation** — paste a script, and a BAML/LLM pipeline structures it into animation scenes, generates the HTML for each, and renders them to PNG with Playwright/Chromium.
+2. **Content Planner** — a Notion-style weekly publishing planner (editorial calendar, weekend-prep, current-week tracker, videos, ideas), fully DB-backed and editable.
 
 | Output | Format | Dimensions |
 |--------|--------|------------|
 | **Animation Scenes** | HTML → PNG | 1920 × 1080 px (16:9) |
-| **Instagram Carousel** | HTML → PNG | 1080 × 1350 px (4:5) |
-| **Preview Thumbnails** | HTML → PNG | 1080 × 1920 px Instagram · 1080 × 1440 px TikTok |
 
-All outputs are rendered server-side with Playwright/Chromium and delivered as a downloadable ZIP of PNGs.
+Rendered PNGs are streamed back as a downloadable ZIP.
+
+> Earlier versions also produced Instagram carousels, preview thumbnails and TikTok scripts. The app is now focused on **animations only** — those content types were removed.
 
 ---
 
 ## Tech Stack
 
 ### Backend — `api/`
-- **[NestJS](https://nestjs.com/)** — modular Node.js framework
-- **[BAML](https://docs.boundaryml.com/)** (BoundaryML) `0.219.0` — type-safe LLM function definitions
-- **[Prisma](https://www.prisma.io/)** — ORM with PostgreSQL
+- **[NestJS 11](https://nestjs.com/)** — modular Node.js framework
+- **[BAML](https://docs.boundaryml.com/)** (BoundaryML) `0.222.0` — type-safe LLM functions
+- **[Prisma 7](https://www.prisma.io/)** — ORM with PostgreSQL (driver adapter `@prisma/adapter-pg`)
 - **[Playwright](https://playwright.dev/)** — server-side HTML-to-PNG rendering
-- **[Sharp](https://sharp.pixelplumbing.com/)** — image post-processing
+- **[Sharp](https://sharp.pixelplumbing.com/)** — image post-processing (circular logo overlay)
 - **[Archiver](https://github.com/archiverjs/node-archiver)** — ZIP packaging
 
 ### Frontend — `frontend/`
-- **[Angular 21](https://angular.dev/)** — standalone components, signals, OnPush
-- **[Tailwind CSS v4](https://tailwindcss.com/)** — utility-first styling
-- **Nginx** — serves the SPA and proxies API calls
+- **[Angular 21](https://angular.dev/)** — standalone components, signals, `OnPush`, zoneless
+- **[Tailwind CSS v4](https://tailwindcss.com/)** — token-based design system (`@theme` CSS variables)
+- **[lucide-angular](https://lucide.dev/)** — icon set
+- **[marked](https://marked.js.org/)** — markdown rendering (via a `MarkdownPipe`)
+- **[Vitest](https://vitest.dev/)** — unit tests (`@angular/build:unit-test`)
+- **Nginx** — serves the SPA and proxies `/api/`
 
 ### Infrastructure
-- **PostgreSQL 16** — primary database
-- **Docker Compose** — orchestrates all four services
-- **Adminer** — database management UI
+- **PostgreSQL 16**, **Docker Compose** (4 services), **Adminer** (DB UI)
 
-### AI Models (with automatic fallback)
+### AI Models (automatic fallback)
 ```
-Primary:  Claude Opus 4.6    (anthropic)
-Fallback: Claude Sonnet 4.5  (anthropic)
-Fallback: Gemini 3.1 Pro     (google-ai)
+Primary:  Claude Opus 4.8    (anthropic)
+Fallback: Claude Sonnet 4.6  (anthropic)
+Also available: Gemini 3.5 Flash (google-ai), GPT-5.5 (openai)
 ```
 
 ---
@@ -53,42 +57,33 @@ Fallback: Gemini 3.1 Pro     (google-ai)
 
 ```
 clipcraft/
-├── api/                        # NestJS backend
-│   ├── baml_src/               # BAML AI function definitions
-│   │   ├── clients.baml        # LLM clients + fallback chain
+├── api/                         # NestJS backend
+│   ├── baml_src/                # BAML AI function definitions
+│   │   ├── clients.baml         # LLM clients + Opus→Sonnet fallback
 │   │   ├── project_metadata.baml
-│   │   ├── carousel.baml       # Carousel structure prompt
-│   │   ├── carousel_html_generator.baml
 │   │   ├── animation_structure.baml
 │   │   ├── animation_html_generator.baml
-│   │   ├── preview_generator.baml
 │   │   └── generators.baml
 │   ├── prisma/
-│   │   └── schema.prisma       # DB schema (Project, Animation, Carousel, Preview)
-│   └── src/
-│       ├── modules/
-│       │   ├── projects/       # CRUD + generation orchestration
-│       │   └── content/
-│       │       ├── animation/
-│       │       ├── carousel/
-│       │       └── preview/
-│       └── shared/
-│           ├── baml/           # BAML client wrapper
-│           ├── prisma/         # Prisma service
-│           └── rendering/      # Playwright PNG renderer
-├── frontend/                   # Angular 21 SPA
-│   ├── src/app/
-│   │   ├── pages/
-│   │   │   ├── home/           # Project list
-│   │   │   └── project-detail/ # Generation UI + script editor
-│   │   ├── services/
-│   │   │   ├── api.service.ts
-│   │   │   └── project.service.ts
-│   │   └── shared/
-│   ├── nginx.conf              # SPA routing + API proxy
-│   └── Dockerfile
+│   │   ├── schema.prisma        # Project, Animation, AnimationScene, PlannerEntry, PlannerTask
+│   │   └── migrations/
+│   ├── scripts/
+│   │   ├── seed-planner.mjs      # seed the planner with EXAMPLE data
+│   │   └── instagram-insights.mjs# pull IG analytics (reads token from env)
+│   └── src/modules/
+│       ├── projects/            # CRUD + animation generation orchestration
+│       ├── content/animation/   # animation structure + HTML generation
+│       └── planner/             # content-planner CRUD (entries + tasks)
+├── frontend/                    # Angular 21 SPA (design-system shell)
+│   └── src/app/
+│       ├── pages/               # home · project-detail · planner · dashboard · settings · login
+│       ├── shared/
+│       │   ├── layout / sidebar / bottom-tab-bar
+│       │   ├── ui/              # drawer, toast, spinner, button, …
+│       │   └── pipes/markdown.pipe.ts
+│       └── services/            # api · project · planner · auth
+├── .github/workflows/           # ci.yml + docker.yml
 ├── docker-compose.yml
-├── .env.example
 └── README.md
 ```
 
@@ -98,31 +93,19 @@ clipcraft/
 
 ### Prerequisites
 - [Docker](https://www.docker.com/) & Docker Compose
-- API keys for at least one AI provider (Anthropic recommended)
+- An Anthropic API key (recommended)
 
 ### 1. Clone and configure
-
 ```bash
 git clone https://github.com/SilvioBaratto/clipcraft.git
 cd clipcraft
-cp .env.example .env
-```
-
-Edit `.env` and add your API keys:
-
-```env
-ANTHROPIC_API_KEY=sk-ant-...
-GOOGLE_API_KEY=...          # optional, used as fallback
-OPENAI_API_KEY=...          # optional
+cp .env.example .env       # add ANTHROPIC_API_KEY (+ optional GOOGLE/OPENAI)
 ```
 
 ### 2. Start all services
-
 ```bash
 docker compose up -d --build
 ```
-
-This starts four containers:
 
 | Service | URL | Description |
 |---------|-----|-------------|
@@ -132,62 +115,91 @@ This starts four containers:
 | Adminer | http://localhost:8090 | DB management |
 
 ### 3. Use the app
+1. Open http://localhost:3000.
+2. **New Project** → paste your script. The AI extracts title, hook, and folder name.
+3. Open the project → **Generate Animations** → watch the pipeline run, preview scenes inline.
+4. **Download PNG** to get the ZIP of rendered scenes.
+5. **Planner** (sidebar) → manage your weekly publishing calendar.
 
-1. Open http://localhost:3000
-2. Click **New Project** and paste your video script
-3. The AI extracts metadata (title, hook, folder name)
-4. Select which content to generate: Animations, Carousel, Previews
-5. Click **Generate** and watch the pipeline run
-6. Preview the output inline, then **Download PNG** to get the ZIP
+### (optional) Seed the planner with example data
+```bash
+cd api
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/clipcraft node scripts/seed-planner.mjs
+```
+> Keep your **real** plan in a gitignored `scripts/seed-planner.local.mjs` (same shape) so it never lands in the repo.
 
 ---
 
 ## API Reference
 
-Base URL: `http://localhost:3001/api/v1`
+Base URL: `http://localhost:3001/api/v1` · full docs at `/api/docs`.
 
 ### Projects
-
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/projects` | Create project from script |
+| `POST` | `/projects` | Create project from script (AI metadata extraction) |
 | `GET` | `/projects` | List all projects |
 | `GET` | `/projects/:id` | Get project by ID |
-| `PATCH` | `/projects/:id/script` | Update project script |
-| `DELETE` | `/projects/:id` | Delete project |
+| `PATCH` | `/projects/:id/script` | Update the source script |
+| `POST` | `/projects/:id/generate/animations` | Generate animation scenes |
+| `POST` | `/projects/:id/generate` | Generate all content (animations) |
 | `GET` | `/projects/:id/download` | Download ZIP of rendered PNGs |
+| `DELETE` | `/projects/:id` | Delete project |
 
-### Generation
-
+### Content
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/projects/:id/generate/carousel` | Generate carousel (step 1) |
-| `POST` | `/projects/:id/generate/animations` | Generate animations (step 2) |
-| `POST` | `/projects/:id/generate/previews` | Generate previews (step 3) |
-| `POST` | `/projects/:id/generate` | Generate all at once |
+| `POST` | `/content/animation/generate` | Generate an animation set |
+| `POST` | `/content/animation/generate-with-html` | …plus rendered HTML |
 
-Full interactive docs at http://localhost:3001/api/docs.
+### Planner
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/planner` | Full planner (calendar entries + tasks) |
+| `POST` | `/planner/entries` | Upsert a calendar day |
+| `PATCH` | `/planner/entries/:id` | Update theme / prepared / published |
+| `DELETE` | `/planner/entries/:id` | Delete a day |
+| `POST` | `/planner/tasks` | Add a checklist task (WEEKEND_PREP / IDEAS) |
+| `PATCH` | `/planner/tasks/:id` | Update label / done / order |
+| `DELETE` | `/planner/tasks/:id` | Delete a task |
 
 ---
 
 ## AI Pipeline
 
-Each generation step calls a BAML function which:
+Each generation call runs a BAML function which:
 
-1. **Structures** the content (scenes/slides with layout metadata)
-2. **Generates HTML** for each scene/slide using the structure as a prompt
-3. **Renders** the HTML to PNG server-side via Playwright
-4. **Persists** everything to PostgreSQL
+1. **Structures** the script into scenes with layout metadata (`StructureAnimations`).
+2. **Generates HTML** for each scene (`GenerateAnimationHTML`).
+3. **Renders** the HTML to PNG server-side via Playwright.
+4. **Persists** everything to PostgreSQL.
 
-The BAML client uses a three-level fallback chain to handle rate limits:
+The LLM client uses a fallback chain to survive rate limits:
 
 ```baml
 client<llm> OpusWithFallback {
   provider fallback
-  options {
-    strategy [CustomOpus46, CustomSonnet45, Gemini]
-  }
+  options { strategy [Opus, Sonnet] }   // Claude Opus 4.8 → Sonnet 4.6
 }
+```
+
+---
+
+## Database
+
+Prisma models:
+
+- **Project** — source script, extracted metadata, `hasAnimations` flag
+- **Animation → AnimationScene** — scenes with generated HTML
+- **PlannerEntry** — one editorial-calendar day (`date`, `theme`, `prepared`, `published`)
+- **PlannerTask** — planner checklist item (`WEEKEND_PREP` | `IDEAS`)
+
+The Content Planner uses a single source of truth: the calendar, "Videos", current-week tracker, and weekend-prep all read/write the same `PlannerEntry` rows (`prepared` / `published`), so an edit anywhere reflects everywhere.
+
+Apply migrations outside Docker:
+```bash
+cd api
+npx prisma migrate deploy
 ```
 
 ---
@@ -196,50 +208,38 @@ client<llm> OpusWithFallback {
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `ANTHROPIC_API_KEY` | Recommended | Claude Opus 4.6 / Sonnet 4.5 |
-| `GOOGLE_API_KEY` | Optional | Gemini 3.1 Pro (fallback) |
-| `OPENAI_API_KEY` | Optional | GPT-5 models |
+| `ANTHROPIC_API_KEY` | Recommended | Claude Opus 4.8 / Sonnet 4.6 |
+| `GOOGLE_API_KEY` | Optional | Gemini 3.5 Flash |
+| `OPENAI_API_KEY` | Optional | GPT-5.5 |
 | `DATABASE_URL` | Yes | PostgreSQL connection string |
 | `PORT` | No | API port (default: 3001) |
-
----
-
-## Database
-
-The schema has four main models:
-
-- **Project** — stores the source script, extracted metadata, and content flags
-- **Animation** → **AnimationScene** — scenes with generated HTML
-- **Carousel** → **CarouselSlide** — slides with generated HTML
-- **Preview** — Instagram and TikTok thumbnail HTML
-
-Run migrations manually (if needed outside Docker):
-
-```bash
-cd api
-npx prisma migrate deploy
-```
 
 ---
 
 ## Development (without Docker)
 
 ```bash
-# Start PostgreSQL locally, then:
-
 # API
 cd api
-cp ../.env.example .env   # update DATABASE_URL to localhost:5432
 npm install
-npm run baml-generate     # generate BAML TypeScript client
+npx prisma generate
 npx prisma migrate dev
-npm run start:dev
+npm run start:dev              # http://localhost:3001
 
 # Frontend (separate terminal)
 cd frontend
-npm install
-npm start                 # runs on http://localhost:4200
+npm install --legacy-peer-deps # lucide/vitest peers lag Angular 21
+npm start                      # http://localhost:4200
 ```
+
+---
+
+## CI/CD
+
+GitHub Actions run on every push / PR to `main`:
+
+- **CI** (`.github/workflows/ci.yml`) — API lint · build · test, Frontend build · test (Vitest). The api jobs drop the host lockfile so Linux native bindings (`@boundaryml/baml`, `sharp`) resolve, then `prisma generate`; the frontend installs with `--legacy-peer-deps`.
+- **Docker** (`.github/workflows/docker.yml`) — builds both container images (build-only; no registry push).
 
 ---
 
