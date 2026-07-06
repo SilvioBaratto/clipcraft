@@ -1,51 +1,29 @@
-import { Component, signal, computed, input, output, inject, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { Component, computed, input, output, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
+
+import { NavItem, NAV_ITEMS } from '../nav-item';
+import { DrawerComponent } from '../ui/drawer/drawer';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [CommonModule, RouterModule],
+  imports: [RouterLink, RouterLinkActive, LucideAngularModule, DrawerComponent],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SidebarComponent {
-  private readonly authService = inject(AuthService);
-  private readonly router = inject(Router);
-
-  // Inputs from parent
   isOpen = input<boolean>(false);
   isMobile = input<boolean>(false);
 
-  // Outputs to parent
   closeSidebar = output<void>();
-  itemSelected = output<string>();
-  newProjectClick = output<void>();
 
-  // Computed property for sidebar visibility
-  showSidebar = computed(() => !this.isMobile() || this.isOpen());
+  navItems: NavItem[] = NAV_ITEMS;
 
-  onHomeClick() {
-    this.itemSelected.emit('Home');
-    this.router.navigate(['/']);
-    this.closeSidebar.emit();
-  }
+  /** Desktop always shows; mobile shows only when open. */
+  readonly showSidebar = computed(() => !this.isMobile() || this.isOpen());
 
-  onNewProjectClick() {
-    this.newProjectClick.emit();
-    if (this.isMobile()) {
-      this.closeSidebar.emit();
-    }
-  }
-
-  onCloseSidebar() {
-    this.closeSidebar.emit();
-  }
-
-  onLogout() {
-    this.authService.logout();
-    this.router.navigate(['/login'], { replaceUrl: true });
+  onNavClick() {
     this.closeSidebar.emit();
   }
 }

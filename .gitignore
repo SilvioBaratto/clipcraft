@@ -35,3 +35,9 @@ coverage/
 api/baml_client/
 api/generated/
 frontend/.angular/
+
+# Playwright MCP artifacts (screenshots / snapshots)
+.playwright-mcp/
+
+# Private local data (e.g. real content-plan seed) — never commit
+*.local.mjs

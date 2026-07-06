@@ -1,13 +1,10 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { Project, Carousel, CarouselSlide, Animation, AnimationScene, Preview } from '../models/project.model';
+import { Project, Animation, AnimationScene } from '../models/project.model';
 import {
   ApiService,
   ProjectResponse,
-  CarouselResponse,
-  CarouselSlideResponse,
   AnimationResponse,
   AnimationSceneResponse,
-  PreviewResponse,
 } from './api.service';
 import { firstValueFrom } from 'rxjs';
 
@@ -105,43 +102,10 @@ export class ProjectService {
         updatedAt: new Date(response.updatedAt),
       },
       hasAnimations: response.hasAnimations,
-      hasCarousel: response.hasCarousel,
-      hasPreview: response.hasPreview,
-      carousels: (response.carousels || []).map((c) => this.toCarousel(c)),
       animations: (response.animations || []).map((a) => this.toAnimation(a)),
-      previews: (response.previews || []).map((p) => this.toPreview(p)),
       createdAt: new Date(response.createdAt),
       updatedAt: new Date(response.updatedAt),
       thumbnail: response.thumbnail,
-    };
-  }
-
-  private toCarousel(response: CarouselResponse): Carousel {
-    return {
-      id: response.id,
-      topic: response.topic,
-      totalSlides: response.totalSlides,
-      colorAccent: response.colorAccent,
-      secondaryAccent: response.secondaryAccent,
-      platform: response.platform,
-      canvas: response.canvas,
-      ratio: response.ratio,
-      status: response.status as Carousel['status'],
-      slides: response.slides.map((s) => this.toCarouselSlide(s)),
-      createdAt: new Date(response.createdAt),
-      updatedAt: new Date(response.updatedAt),
-    };
-  }
-
-  private toCarouselSlide(response: CarouselSlideResponse): CarouselSlide {
-    return {
-      id: response.id,
-      slideNumber: response.slideNumber,
-      slideType: response.slideType as CarouselSlide['slideType'],
-      mainText: response.mainText,
-      highlightText: response.highlightText,
-      subText: response.subText,
-      generatedHtml: response.generatedHtml,
     };
   }
 
@@ -168,26 +132,6 @@ export class ProjectService {
       subText: response.subText,
       visualType: response.visualType as AnimationScene['visualType'],
       generatedHtml: response.generatedHtml,
-    };
-  }
-
-  private toPreview(response: PreviewResponse): Preview {
-    return {
-      id: response.id,
-      platform: response.platform as Preview['platform'],
-      width: response.width,
-      height: response.height,
-      colorAccent: response.colorAccent,
-      secondaryAccent: response.secondaryAccent,
-      mainText: response.mainText,
-      highlightText: response.highlightText,
-      subText: response.subText,
-      emoji: response.emoji,
-      label: response.label,
-      generatedHtml: response.generatedHtml,
-      status: response.status as Preview['status'],
-      createdAt: new Date(response.createdAt),
-      updatedAt: new Date(response.updatedAt),
     };
   }
 

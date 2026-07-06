@@ -82,7 +82,7 @@ export class ProjectsController {
   })
   async updateStatus(
     @Param('id') id: string,
-    @Body() status: { hasAnimations?: boolean; hasCarousel?: boolean; hasPreview?: boolean },
+    @Body() status: { hasAnimations?: boolean },
   ): Promise<ProjectResponseDto> {
     return this.projectsService.updateStatus(id, status);
   }
@@ -90,7 +90,8 @@ export class ProjectsController {
   @Post(':id/generate')
   @ApiOperation({
     summary: 'Generate all content for a project',
-    description: 'Generates carousel slides and animation scenes for a project and saves them to the database',
+    description:
+      'Generates animation scenes for a project and saves them to the database',
   })
   @ApiResponse({
     status: 201,
@@ -105,32 +106,17 @@ export class ProjectsController {
     return this.projectsService.generateAllContent(id);
   }
 
-  @Post(':id/generate/carousel')
-  @ApiOperation({ summary: 'Generate carousel for a project (step 1/3)' })
-  @ApiResponse({ status: 201, type: ProjectResponseDto })
-  async generateCarousel(@Param('id') id: string): Promise<ProjectResponseDto> {
-    return this.projectsService.generateCarouselContent(id);
-  }
-
   @Post(':id/generate/animations')
-  @ApiOperation({ summary: 'Generate animations for a project (step 2/3)' })
+  @ApiOperation({ summary: 'Generate animations for a project' })
   @ApiResponse({ status: 201, type: ProjectResponseDto })
   async generateAnimations(@Param('id') id: string): Promise<ProjectResponseDto> {
     return this.projectsService.generateAnimationContent(id);
   }
 
-  @Post(':id/generate/previews')
-  @ApiOperation({ summary: 'Generate previews for a project (step 3/3)' })
-  @ApiResponse({ status: 201, type: ProjectResponseDto })
-  async generatePreviews(@Param('id') id: string): Promise<ProjectResponseDto> {
-    return this.projectsService.generatePreviewContent(id);
-  }
-
   @Get(':id/download')
   @ApiOperation({
     summary: 'Download project as PNG ZIP',
-    description:
-      'Renders all project content to PNG using Playwright and streams a ZIP archive',
+    description: 'Renders all project content to PNG using Playwright and streams a ZIP archive',
   })
   @ApiResponse({
     status: 200,
@@ -140,10 +126,7 @@ export class ProjectsController {
     status: 404,
     description: 'Project not found',
   })
-  async downloadProject(
-    @Param('id') id: string,
-    @Res() res: Response,
-  ): Promise<void> {
+  async downloadProject(@Param('id') id: string, @Res() res: Response): Promise<void> {
     await this.projectsService.streamProjectZip(id, res);
   }
 

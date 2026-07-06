@@ -1,0 +1,225 @@
+<div class="space-y-12 animate-fade-in-up">
+  <!-- Page title -->
+  <header>
+    <h1 class="text-3xl font-display font-semibold tracking-tight text-text">Content Planner</h1>
+    <p class="mt-1 text-sm text-text-tertiary">Instagram — weekly publishing plan</p>
+  </header>
+
+  @if (error()) {
+    <div class="flex items-center gap-2 text-danger">
+      <lucide-icon name="circle-alert" class="w-5 h-5" aria-hidden="true" />
+      <span class="text-sm font-medium">{{ error() }}</span>
+    </div>
+  }
+
+  @if (isLoading() && entries().length === 0) {
+    <div class="flex items-center gap-3 py-8 text-text-secondary">
+      <lucide-icon name="loader-2" class="w-5 h-5 animate-spin text-primary" aria-hidden="true" />
+      <span class="text-sm">Loading planner…</span>
+    </div>
+  } @else {
+
+    <!-- ================= 1. Editorial calendar ================= -->
+    <section>
+      <div class="mb-3 flex items-baseline gap-3 border-b border-border pb-2">
+        <h2 class="text-lg font-display font-semibold text-text">Editorial calendar</h2>
+        <span class="text-xs text-text-tertiary">{{ entries().length }} days</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[34rem] border-collapse text-sm">
+          <thead>
+            <tr class="border-b border-border text-left text-xs font-medium uppercase tracking-wide text-text-tertiary">
+              <th class="py-2 pr-4 font-medium">Date</th>
+              <th class="py-2 pr-4 font-medium">Day</th>
+              <th class="py-2 pr-4 font-medium">Theme / format</th>
+              <th class="w-14 py-2 text-center font-medium">Prep</th>
+              <th class="w-14 py-2 text-center font-medium">Done</th>
+              <th class="w-8"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of entries(); track entry.id) {
+              <tr class="group border-b border-border-muted transition-colors hover:bg-surface-inset/50"
+                  [class.bg-primary-light]="isToday(entry.date)">
+                <td class="whitespace-nowrap py-1.5 pr-4 font-medium text-text tabular-nums">{{ ddmm(entry.date) }}</td>
+                <td class="whitespace-nowrap py-1.5 pr-4"
+                    [class.text-text-tertiary]="isWeekend(entry.date)"
+                    [class.text-text-secondary]="!isWeekend(entry.date)">{{ weekday(entry.date) }}</td>
+                <td class="py-1 pr-4">
+                  <input
+                    type="text"
+                    [value]="entry.theme ?? ''"
+                    (change)="onThemeChange(entry, $any($event.target).value)"
+                    placeholder="Empty"
+                    class="w-full min-w-0 rounded border-0 bg-transparent px-1.5 py-1 text-text placeholder:text-text-tertiary/60 hover:bg-surface-inset focus:bg-surface-raised focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
+                    [class.text-warning]="entry.theme === 'TODO'"
+                  />
+                </td>
+                <td class="py-1.5 text-center">
+                  @if (entry.theme && entry.theme.trim() !== '') {
+                    <input type="checkbox" [checked]="entry.prepared" (change)="togglePrepared(entry)"
+                      class="h-4 w-4 cursor-pointer accent-primary align-middle" aria-label="Prepared" />
+                  }
+                </td>
+                <td class="py-1.5 text-center">
+                  <input type="checkbox" [checked]="entry.published" (change)="togglePublished(entry)"
+                    class="h-4 w-4 cursor-pointer accent-primary align-middle" aria-label="Published" />
+                </td>
+                <td class="py-1.5 text-right">
+                  <button (click)="deleteEntry(entry)" aria-label="Delete row"
+                    class="rounded p-1 text-text-tertiary opacity-0 transition-opacity hover:text-danger group-hover:opacity-100">
+                    <lucide-icon name="Trash2" class="w-4 h-4" aria-hidden="true" />
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Add row (inline, ghost) -->
+      <div class="mt-3 flex flex-wrap items-center gap-2">
+        <input type="date" [ngModel]="newDate()" (ngModelChange)="newDate.set($event)"
+          class="min-h-9 rounded-md border border-border/70 bg-transparent px-2.5 py-1.5 text-sm text-text focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+        <input type="text" [ngModel]="newTheme()" (ngModelChange)="newTheme.set($event)" placeholder="Theme / format (optional)"
+          (keydown.enter)="addRow()"
+          class="min-h-9 flex-1 rounded-md border border-border/70 bg-transparent px-2.5 py-1.5 text-sm text-text placeholder:text-text-tertiary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+        <button (click)="addRow()" [disabled]="!newDate()"
+          class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-inset hover:text-text disabled:opacity-40 disabled:cursor-not-allowed">
+          <lucide-icon name="Plus" class="w-4 h-4" aria-hidden="true" /> Add day
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= 2. This weekend prep ================= -->
+    <section>
+      <div class="mb-2 border-b border-border pb-2">
+        <h2 class="text-lg font-display font-semibold text-text">This weekend prep</h2>
+        <p class="mt-0.5 text-sm text-text-tertiary">Upcoming content to prepare — the checkbox is synced with the calendar's Prep column.</p>
+      </div>
+
+      <!-- Derived from the calendar (next ~9 days of themed content) -->
+      @if (prepEntries().length > 0) {
+        <div class="space-y-0.5">
+          @for (entry of prepEntries(); track entry.id) {
+            <label class="-mx-2 flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-inset/60">
+              <input type="checkbox" [checked]="entry.prepared" (change)="togglePrepared(entry)"
+                class="h-4 w-4 shrink-0 cursor-pointer accent-primary" />
+              <span class="w-12 shrink-0 text-sm font-medium text-text-secondary tabular-nums">{{ ddmm(entry.date) }}</span>
+              <span class="flex-1 text-sm text-text" [class.line-through]="entry.prepared" [class.text-text-tertiary]="entry.prepared">{{ entry.theme }}</span>
+            </label>
+          }
+        </div>
+      } @else {
+        <p class="py-2 text-sm text-text-tertiary">Nothing to prepare in the next days.</p>
+      }
+
+      <!-- Free notes not tied to a date -->
+      <div class="mt-5">
+        <p class="mb-1 text-xs font-medium uppercase tracking-wide text-text-tertiary">Notes</p>
+        <div class="space-y-0.5">
+          @for (task of weekendTasks(); track task.id) {
+            <div class="group -mx-2 flex items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-inset/60">
+              <input type="checkbox" [checked]="task.done" (change)="toggleTask(task)"
+                class="h-4 w-4 shrink-0 cursor-pointer accent-primary" [attr.aria-label]="task.label" />
+              <input type="text" [value]="task.label" (change)="onTaskLabelChange(task, $any($event.target).value)"
+                class="flex-1 rounded border-0 bg-transparent px-1.5 py-0.5 text-sm text-text focus:bg-surface-raised focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
+                [class.line-through]="task.done" [class.text-text-tertiary]="task.done" />
+              <button (click)="deleteTask(task)" aria-label="Delete note"
+                class="rounded p-1 text-text-tertiary opacity-0 transition-opacity hover:text-danger group-hover:opacity-100">
+                <lucide-icon name="Trash2" class="w-4 h-4" aria-hidden="true" />
+              </button>
+            </div>
+          }
+        </div>
+        <div class="mt-2 flex items-center gap-2">
+          <input type="text" [ngModel]="newPrep()" (ngModelChange)="newPrep.set($event)" placeholder="Add note…"
+            (keydown.enter)="addPrep()"
+            class="min-h-9 flex-1 rounded-md border border-border/70 bg-transparent px-2.5 py-1.5 text-sm text-text placeholder:text-text-tertiary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+          <button (click)="addPrep()" [disabled]="!newPrep().trim()"
+            class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-inset hover:text-text disabled:opacity-40 disabled:cursor-not-allowed">
+            <lucide-icon name="Plus" class="w-4 h-4" aria-hidden="true" /> Add
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 3. Current week tracker ================= -->
+    <section>
+      <div class="mb-2 border-b border-border pb-2">
+        <h2 class="text-lg font-display font-semibold text-text">Current week tracker</h2>
+        <p class="mt-0.5 text-sm text-text-tertiary">
+          Publish / go-live · {{ ddmmFromMs(currentWeek().startMs) }} → {{ ddmmFromMs(currentWeek().endMs) }}
+        </p>
+      </div>
+      @if (currentWeek().entries.length > 0) {
+        <div class="space-y-0.5">
+          @for (entry of currentWeek().entries; track entry.id) {
+            <label class="-mx-2 flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-inset/60">
+              <input type="checkbox" [checked]="entry.published" (change)="togglePublished(entry)"
+                class="h-4 w-4 shrink-0 cursor-pointer accent-primary" />
+              <span class="w-12 shrink-0 text-sm font-medium text-text-secondary tabular-nums">{{ ddmm(entry.date) }}</span>
+              <span class="flex-1 text-sm text-text" [class.line-through]="entry.published" [class.text-text-tertiary]="entry.published">{{ entry.theme }}</span>
+            </label>
+          }
+        </div>
+      } @else {
+        <p class="py-2 text-sm text-text-tertiary">No publishes scheduled this week.</p>
+      }
+    </section>
+
+    <!-- ================= 4. Videos ================= -->
+    <section>
+      <div class="mb-2 flex items-baseline gap-3 border-b border-border pb-2">
+        <h2 class="text-lg font-display font-semibold text-text">Videos</h2>
+        <span class="text-xs text-text-tertiary">{{ videos().length }} scheduled</span>
+      </div>
+      <div class="space-y-0.5">
+        @for (entry of videos(); track entry.id) {
+          <label class="-mx-2 flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-inset/60">
+            <input type="checkbox" [checked]="entry.published" (change)="togglePublished(entry)"
+              class="h-4 w-4 shrink-0 cursor-pointer accent-primary" />
+            <span class="w-12 shrink-0 text-sm font-medium text-text-secondary tabular-nums">{{ ddmm(entry.date) }}</span>
+            <span class="flex-1 text-sm" [class.line-through]="entry.published"
+              [class.text-text-tertiary]="entry.published || entry.theme === 'TODO'"
+              [class.text-text]="!entry.published && entry.theme !== 'TODO'">{{ entry.theme }}</span>
+          </label>
+        }
+      </div>
+    </section>
+
+    <!-- ================= 5. Ideas ================= -->
+    <section>
+      <h2 class="mb-2 border-b border-border pb-2 text-lg font-display font-semibold text-text">Ideas</h2>
+      @if (ideaTasks().length > 0) {
+        <div class="space-y-0.5">
+          @for (task of ideaTasks(); track task.id) {
+            <div class="group -mx-2 flex items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-inset/60">
+              <input type="checkbox" [checked]="task.done" (change)="toggleTask(task)"
+                class="h-4 w-4 shrink-0 cursor-pointer accent-primary" />
+              <input type="text" [value]="task.label" (change)="onTaskLabelChange(task, $any($event.target).value)"
+                class="flex-1 rounded border-0 bg-transparent px-1.5 py-0.5 text-sm text-text focus:bg-surface-raised focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
+                [class.line-through]="task.done" [class.text-text-tertiary]="task.done" />
+              <button (click)="deleteTask(task)" aria-label="Delete idea"
+                class="rounded p-1 text-text-tertiary opacity-0 transition-opacity hover:text-danger group-hover:opacity-100">
+                <lucide-icon name="Trash2" class="w-4 h-4" aria-hidden="true" />
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="py-1 text-sm text-text-tertiary">No ideas yet.</p>
+      }
+      <div class="mt-2 flex items-center gap-2">
+        <input type="text" [ngModel]="newIdea()" (ngModelChange)="newIdea.set($event)" placeholder="Add an idea…"
+          (keydown.enter)="addIdea()"
+          class="min-h-9 flex-1 rounded-md border border-border/70 bg-transparent px-2.5 py-1.5 text-sm text-text placeholder:text-text-tertiary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
+        <button (click)="addIdea()" [disabled]="!newIdea().trim()"
+          class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-inset hover:text-text disabled:opacity-40 disabled:cursor-not-allowed">
+          <lucide-icon name="Plus" class="w-4 h-4" aria-hidden="true" /> Add
+        </button>
+      </div>
+    </section>
+  }
+</div>

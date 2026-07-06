@@ -2,23 +2,25 @@ import { Component, inject, signal, computed, effect, ChangeDetectionStrategy, O
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { MarkdownComponent } from 'ngx-markdown';
+import { LucideAngularModule } from 'lucide-angular';
 import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
+import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 import { ScaledIframeDirective } from '../../directives/scaled-iframe.directive';
 import { ProjectService } from '../../services/project.service';
 import { ApiService } from '../../services/api.service';
-import { Project, Carousel, Animation, Preview } from '../../models/project.model';
+import { Project, Animation } from '../../models/project.model';
+import { IconName } from '../../icons';
 import { firstValueFrom } from 'rxjs';
 
-type ContentType = 'animations' | 'carousel' | 'preview';
-type GenerationStep = 'idle' | 'carousel' | 'animations' | 'previews' | 'complete';
+type ContentType = 'animations';
+type GenerationStep = 'idle' | 'animations' | 'complete';
 
 @Component({
   selector: 'app-project-detail',
-  imports: [CommonModule, FormsModule, MarkdownComponent, SafeHtmlPipe, ScaledIframeDirective],
+  imports: [CommonModule, FormsModule, LucideAngularModule, SafeHtmlPipe, MarkdownPipe, ScaledIframeDirective],
   templateUrl: './project-detail.html',
-  styleUrl: './project-detail.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block' },
 })
 export class ProjectDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
@@ -28,6 +30,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
 
   // Project state
   project = signal<Project | null>(null);
+  isLoadingProject = signal(true);
   isEditingScript = signal(false);
   editedScript = signal('');
   rawSourceScript = signal('');
@@ -41,17 +44,13 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   generationError = signal<string | null>(null);
 
   // Structured content storage
-  carousels = signal<Carousel[]>([]);
   animations = signal<Animation[]>([]);
-  previews = signal<Preview[]>([]);
 
   // Ordered steps for the selected types
   private activeSteps = computed<GenerationStep[]>(() => {
     const selected = this.selectedTypes();
     const steps: GenerationStep[] = [];
-    if (selected.has('carousel')) steps.push('carousel');
     if (selected.has('animations')) steps.push('animations');
-    if (selected.has('preview')) steps.push('previews');
     return steps;
   });
 
@@ -69,41 +68,24 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   // Label for current generation step
   stepLabel = computed(() => {
     switch (this.currentStep()) {
-      case 'carousel': return 'Generating carousel...';
       case 'animations': return 'Generating animations...';
-      case 'previews': return 'Generating previews...';
       case 'complete': return 'All content generated!';
       default: return '';
     }
   });
 
   // Content cards configuration
-  readonly contentCards: { type: ContentType; title: string; iconPath: string; color: string; description: string }[] = [
+  readonly contentCards: { type: ContentType; title: string; icon: IconName; description: string }[] = [
     {
       type: 'animations',
       title: 'Animations',
-      iconPath: 'assets/icons/animation.svg',
-      color: 'emerald',
+      icon: 'Film',
       description: 'Video animation scenes (1920x1080px)',
-    },
-    {
-      type: 'carousel',
-      title: 'Instagram Carousel',
-      iconPath: 'assets/icons/carousel.svg',
-      color: 'blue',
-      description: 'Instagram carousel slides (1080x1350px)',
-    },
-    {
-      type: 'preview',
-      title: 'Preview',
-      iconPath: 'assets/icons/thumbnail.svg',
-      color: 'violet',
-      description: 'Instagram & TikTok thumbnails',
     },
   ];
 
   // Generation selection
-  selectedTypes = signal<Set<ContentType>>(new Set(['animations', 'carousel', 'preview']));
+  selectedTypes = signal<Set<ContentType>>(new Set(['animations']));
 
   isTypeSelected(type: ContentType): boolean {
     return this.selectedTypes().has(type);
@@ -121,16 +103,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  selectAllTypes() {
-    this.selectedTypes.set(new Set(['animations', 'carousel', 'preview']));
-  }
-
-  clearSelection() {
-    this.selectedTypes.set(new Set());
-  }
-
   hasAnySelected = computed(() => this.selectedTypes().size > 0);
-  hasAllSelected = computed(() => this.selectedTypes().size === 3);
 
   // Download state
   isDownloading = signal(false);
@@ -174,31 +147,30 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     const projectId = this.route.snapshot.paramMap.get('id');
-    if (projectId) {
-      try {
-        // Fetch fresh data from API
-        const response = await firstValueFrom(this.apiService.getProject(projectId));
-        const project = this.mapResponseToProject(response);
-        this.project.set(project);
-        this.rawSourceScript.set(response.sourceScript ?? '');
-        this.editedScript.set(response.sourceScript ?? '');
-        // Load structured content
-        this.carousels.set(project.carousels || []);
-        this.animations.set(project.animations || []);
-        this.previews.set(project.previews || []);
-      } catch {
-        // If API fails, try local cache
-        const found = this.projectService.getProjectById(projectId);
-        if (found) {
-          this.project.set(found);
-          this.editedScript.set(this.scriptContent());
-          this.carousels.set(found.carousels || []);
-          this.animations.set(found.animations || []);
-          this.previews.set(found.previews || []);
-        } else {
-          this.router.navigate(['/']);
-        }
+    if (!projectId) {
+      this.isLoadingProject.set(false);
+      return;
+    }
+    try {
+      // Fetch fresh data from API
+      const response = await firstValueFrom(this.apiService.getProject(projectId));
+      const project = this.mapResponseToProject(response);
+      this.project.set(project);
+      this.rawSourceScript.set(response.sourceScript ?? '');
+      this.editedScript.set(response.sourceScript ?? '');
+      // Load structured content
+      this.animations.set(project.animations || []);
+    } catch {
+      // If API fails, try local cache
+      const found = this.projectService.getProjectById(projectId);
+      if (found) {
+        this.project.set(found);
+        this.editedScript.set(this.scriptContent());
+        this.animations.set(found.animations || []);
       }
+      // else: leave project() null → template shows the "not found" state
+    } finally {
+      this.isLoadingProject.set(false);
     }
   }
 
@@ -217,30 +189,6 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
         updatedAt: new Date(response.updatedAt),
       },
       hasAnimations: response.hasAnimations,
-      hasCarousel: response.hasCarousel,
-      hasPreview: response.hasPreview,
-      carousels: (response.carousels || []).map((c) => ({
-        id: c.id,
-        topic: c.topic,
-        totalSlides: c.totalSlides,
-        colorAccent: c.colorAccent,
-        secondaryAccent: c.secondaryAccent,
-        platform: c.platform,
-        canvas: c.canvas,
-        ratio: c.ratio,
-        status: c.status as Carousel['status'],
-        slides: c.slides.map((s) => ({
-          id: s.id,
-          slideNumber: s.slideNumber,
-          slideType: s.slideType as 'HOOK' | 'CONTENT' | 'CTA',
-          mainText: s.mainText,
-          highlightText: s.highlightText,
-          subText: s.subText,
-          generatedHtml: s.generatedHtml,
-        })),
-        createdAt: new Date(c.createdAt),
-        updatedAt: new Date(c.updatedAt),
-      })),
       animations: (response.animations || []).map((a) => ({
         id: a.id,
         topic: a.topic,
@@ -259,23 +207,6 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
         })),
         createdAt: new Date(a.createdAt),
         updatedAt: new Date(a.updatedAt),
-      })),
-      previews: (response.previews || []).map((p) => ({
-        id: p.id,
-        platform: p.platform as 'instagram' | 'tiktok',
-        width: p.width,
-        height: p.height,
-        colorAccent: p.colorAccent,
-        secondaryAccent: p.secondaryAccent,
-        mainText: p.mainText,
-        highlightText: p.highlightText,
-        subText: p.subText,
-        emoji: p.emoji,
-        label: p.label,
-        generatedHtml: p.generatedHtml,
-        status: p.status as Preview['status'],
-        createdAt: new Date(p.createdAt),
-        updatedAt: new Date(p.updatedAt),
       })),
       createdAt: new Date(response.createdAt),
       updatedAt: new Date(response.updatedAt),
@@ -373,10 +304,6 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     switch (type) {
       case 'animations':
         return p.hasAnimations;
-      case 'carousel':
-        return p.hasCarousel;
-      case 'preview':
-        return p.hasPreview;
       default:
         return false;
     }
@@ -398,40 +325,26 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     try {
       const updated = await firstValueFrom(this.apiService.updateProjectScript(p.id, this.editedScript()));
       this.project.set(this.mapResponseToProject(updated));
+      // Refresh the raw source the read-only markdown view renders, so the saved
+      // text is reflected immediately (not only after a reload).
+      this.rawSourceScript.set(updated.sourceScript ?? '');
+      this.editedScript.set(updated.sourceScript ?? '');
     } catch (error) {
       console.error('Failed to save script:', error);
     }
     this.isEditingScript.set(false);
   }
 
-  getCardColorClasses(color: string, isAvailable: boolean): Record<string, boolean> {
-    if (!isAvailable) {
-      return {
-        'bg-slate-50 border-slate-200 text-slate-400': true,
-        'cursor-not-allowed': true,
-      };
-    }
-
-    return {
-      'bg-emerald-50 border-emerald-200 hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/10':
-        color === 'emerald',
-      'bg-blue-50 border-blue-200 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/10': color === 'blue',
-      'bg-violet-50 border-violet-200 hover:border-violet-400 hover:shadow-lg hover:shadow-violet-500/10':
-        color === 'violet',
-      'cursor-pointer': true,
-    };
-  }
-
   // Check if all content is already generated
   isAllGenerated(): boolean {
     const p = this.project();
-    return p ? p.hasCarousel && p.hasAnimations && p.hasPreview : false;
+    return p ? p.hasAnimations : false;
   }
 
   // Check if any content has been generated
   hasAnyGenerated(): boolean {
     const p = this.project();
-    return p ? p.hasCarousel || p.hasAnimations || p.hasPreview : false;
+    return p ? p.hasAnimations : false;
   }
 
   // Start the generation pipeline (only selected types)
@@ -444,19 +357,9 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     const selected = this.selectedTypes();
 
     try {
-      if (selected.has('carousel')) {
-        this.currentStep.set('carousel');
-        await firstValueFrom(this.apiService.generateProjectCarousel(p.id));
-      }
-
       if (selected.has('animations')) {
         this.currentStep.set('animations');
         await firstValueFrom(this.apiService.generateProjectAnimations(p.id));
-      }
-
-      if (selected.has('preview')) {
-        this.currentStep.set('previews');
-        await firstValueFrom(this.apiService.generateProjectPreviews(p.id));
       }
 
       // Done — fetch final project state
@@ -464,15 +367,11 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       const projectResponse = await firstValueFrom(this.apiService.getProject(p.id));
       const updated = this.mapResponseToProject(projectResponse);
       this.project.set(updated);
-      this.carousels.set(updated.carousels || []);
       this.animations.set(updated.animations || []);
-      this.previews.set(updated.previews || []);
 
       // Reset to idle and open the first generated tab
       this.currentStep.set('idle');
       if (selected.has('animations')) this.activeTab.set('animations');
-      else if (selected.has('carousel')) this.activeTab.set('carousel');
-      else if (selected.has('preview')) this.activeTab.set('preview');
     } catch (error) {
       console.error('Generation failed:', error);
       this.generationError.set(error instanceof Error ? error.message : 'Generation failed');

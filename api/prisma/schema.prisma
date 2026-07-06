@@ -39,13 +39,6 @@ enum VisualType {
   DASHBOARD
 }
 
-// Carousel enums (from carousel.baml)
-enum SlideType {
-  HOOK
-  CONTENT
-  CTA
-}
-
 // =============================================================================
 // USER
 // =============================================================================
@@ -59,7 +52,6 @@ model User {
 
   projects   Project[]
   animations Animation[]
-  carousels  Carousel[]
 }
 
 // =============================================================================
@@ -79,8 +71,6 @@ model Project {
 
   // Content flags
   hasAnimations Boolean @default(false)
-  hasCarousel   Boolean @default(false)
-  hasPreview    Boolean @default(false)
 
   // Relations
   userId    String?
@@ -89,9 +79,7 @@ model Project {
   updatedAt DateTime @updatedAt
 
   // Content relations (normalized)
-  carousels  Carousel[]
   animations Animation[]
-  previews   Preview[]
 
   @@index([userId])
 }
@@ -158,110 +146,38 @@ model AnimationScene {
 }
 
 // =============================================================================
-// CAROUSEL (from carousel.baml + carousel_html_generator.baml)
+// CONTENT PLANNER (Instagram weekly publishing plan)
 // =============================================================================
 
-model Carousel {
-  id              String        @id @default(cuid())
-  topic           String
-  totalSlides     Int
-  colorAccent     String
-  secondaryAccent String?
-  status          ContentStatus @default(DRAFT)
+// Freeform checklist sections (calendar-independent tasks)
+enum PlannerSection {
+  WEEKEND_PREP
+  IDEAS
+}
 
-  // Platform settings
-  platform String? // e.g., "tiktok", "instagram"
-  canvas   String? // e.g., "1080x1350"
-  ratio    String? // e.g., "4:5"
-
-  // Source script used to generate the carousel
-  sourceScript String? @db.Text
-
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Project relation (for project-based generation)
-  projectId String?
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
+// Editorial calendar row — one per date. The "Videos" list and the current-week
+// "publish / go-live" checklist are derived from the entries that have a theme.
+model PlannerEntry {
+  id        String   @id @default(cuid())
+  date      DateTime @unique @db.Date
+  theme     String? // the "Format" column; null = no post that day, "TODO" = to decide
+  prepared  Boolean  @default(false) // "weekend prep" done — content is ready
+  published Boolean  @default(false) // go-live / done toggle
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  slides CarouselSlide[]
-
-  @@index([userId])
-  @@index([projectId])
-  @@index([status])
+  @@index([date])
 }
 
-model CarouselSlide {
-  id          String @id @default(cuid())
-  carouselId  String
-  slideNumber Int
+// Checklist item for the weekend-prep and ideas sections.
+model PlannerTask {
+  id        String         @id @default(cuid())
+  section   PlannerSection
+  label     String
+  done      Boolean        @default(false)
+  order     Int            @default(0)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 
-  // Structure data (from StructureCarousel output)
-  slideType     SlideType
-  mainText      String
-  highlightText String?
-  subText       String?
-  dataVisual    String?
-  emoji         String?
-  label         String?
-
-  // Generation prompt for HTML generator
-  generationPrompt String @db.Text
-
-  // Generated HTML output (from GenerateSlideHTML)
-  generatedHtml String? @db.Text
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  carousel Carousel @relation(fields: [carouselId], references: [id], onDelete: Cascade)
-
-  @@unique([carouselId, slideNumber])
-  @@index([carouselId])
-}
-
-// =============================================================================
-// PREVIEW (from preview_generator.baml)
-// =============================================================================
-
-model Preview {
-  id String @id @default(cuid())
-
-  // Platform type (instagram, tiktok)
-  platform String // e.g., "instagram", "tiktok"
-
-  // Canvas dimensions
-  width  Int
-  height Int
-
-  // Colors
-  colorAccent     String
-  secondaryAccent String?
-
-  // Content
-  mainText      String
-  highlightText String?
-  subText       String?
-  emoji         String?
-  label         String?
-
-  // Generation prompt
-  generationPrompt String @db.Text
-
-  // Generated HTML output (from GeneratePreviewHTML)
-  generatedHtml String? @db.Text
-
-  status    ContentStatus @default(DRAFT)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-
-  // Project relation
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId])
-  @@index([status])
+  @@index([section])
 }

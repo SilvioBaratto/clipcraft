@@ -1,17 +1,17 @@
 // Learn more about clients at https://docs.boundaryml.com/docs/snippets/clients/overview
 
-client<llm> CustomGPT5 {
+client<llm> GPT {
   provider openai
   options {
-    model "gpt-5.2"
+    model "gpt-5.5"
     api_key env.OPENAI_API_KEY
   }
 }
 
-client<llm> CustomGPT5mini {
+client<llm> GPTmini {
   provider openai
   options {
-    model "gpt-5-mini"
+    model "gpt-5.4-mini"
     api_key env.OPENAI_API_KEY
   }
 }
@@ -19,42 +19,37 @@ client<llm> CustomGPT5mini {
 client<llm> Gemini {
   provider google-ai
   options {
-    model "gemini-3.1-pro-preview"
+    model "gemini-3.5-flash"
     api_key env.GOOGLE_API_KEY
-    generationConfig {
-      maxOutputTokens 8000
-    }
   }
 }
 
-// Claude Opus 4.6 - Most intelligent model for agents and coding
-client<llm> CustomOpus46 {
+// Claude Opus 4.8 - Most intelligent model for agents and coding
+client<llm> Opus {
   provider anthropic
   retry_policy Exponential
   options {
-    model "claude-opus-4-6"
+    model "claude-opus-4-8"
     api_key env.ANTHROPIC_API_KEY
-    max_tokens 8000
   }
 }
 
-// Claude Sonnet 4.5 - Best coding model and strongest for complex agents (released Sep 2025)
-client<llm> CustomSonnet45 {
+// Claude Sonnet 4.6 - Best coding model and strongest for complex agents
+client<llm> Sonnet {
   provider anthropic
   options {
-    model "claude-sonnet-4-5-20250929"
+    model "claude-sonnet-4-6"
     api_key env.ANTHROPIC_API_KEY
-    max_tokens 8000
   }
 }
 
-// Fallback chain: Opus 4.6 → Sonnet 4.5
+// Fallback chain: Opus 4.8 → Sonnet 4.6
 // Activates automatically on 429 rate-limit or any other provider error.
 // https://docs.boundaryml.com/docs/snippets/clients/fallback
 client<llm> OpusWithFallback {
   provider fallback
   options {
-    strategy [CustomOpus46, CustomSonnet45]
+    strategy [Opus, Sonnet]
   }
 }
 

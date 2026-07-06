@@ -22,6 +22,21 @@ export const routes: Routes = [
         title: 'Home - ClipCraft',
       },
       {
+        path: 'planner',
+        loadComponent: () => import('./pages/planner/planner').then((m) => m.PlannerComponent),
+        title: 'Planner - ClipCraft',
+      },
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.DashboardComponent),
+        title: 'Dashboard - ClipCraft',
+      },
+      {
+        path: 'settings',
+        loadComponent: () => import('./pages/settings/settings').then((m) => m.SettingsComponent),
+        title: 'Settings - ClipCraft',
+      },
+      {
         path: 'project/:id',
         loadComponent: () =>
           import('./pages/project-detail/project-detail').then((m) => m.ProjectDetailComponent),

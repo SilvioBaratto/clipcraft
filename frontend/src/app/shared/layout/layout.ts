@@ -1,107 +1,81 @@
-import { Component, signal, computed, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import {
+  Component,
+  signal,
+  inject,
+  OnInit,
+  OnDestroy,
+  ChangeDetectionStrategy,
+  DestroyRef,
+} from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { Title } from '@angular/platform-browser';
+import { filter, map } from 'rxjs/operators';
+
 import { SidebarComponent } from '../sidebar/sidebar';
-import { NewProjectModalComponent } from '../new-project-modal/new-project-modal';
+import { BottomTabBarComponent } from '../bottom-tab-bar/bottom-tab-bar';
+import { ToastComponent } from '../ui/toast/toast';
 
 @Component({
   selector: 'app-layout',
-  imports: [CommonModule, RouterOutlet, SidebarComponent, NewProjectModalComponent],
+  imports: [RouterOutlet, SidebarComponent, BottomTabBarComponent, ToastComponent],
   templateUrl: './layout.html',
   styleUrl: './layout.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LayoutComponent implements OnInit, OnDestroy {
-  // Application title
-  title = 'ClipCraft';
+  private readonly router = inject(Router);
+  private readonly title = inject(Title);
+  private readonly destroyRef = inject(DestroyRef);
 
-  // Sidebar state management using Angular 19 signals
+  // Kept only so the desktop sidebar's `showSidebar` (= !isMobile) resolves.
+  // No mobile drawer toggle exists — mobile navigates via the bottom tab bar.
   isSidebarOpen = signal(false);
   isMobile = signal(false);
-  currentPage = signal('Home');
 
-  // Modal state
-  isNewProjectModalOpen = signal(false);
+  readonly announced = toSignal(
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+      map(() => this.title.getTitle()),
+    ),
+    { initialValue: '' },
+  );
 
-  // Computed property for responsive sidebar behavior
-  showSidebar = computed(() => !this.isMobile() || this.isSidebarOpen());
-
-  // Resize observer for better mobile detection
   private resizeObserver?: ResizeObserver;
 
   ngOnInit() {
     this.checkScreenSize();
     this.initializeResizeObserver();
+    this.initializeFocusManagement();
   }
 
   ngOnDestroy() {
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
-    }
+    this.resizeObserver?.disconnect();
   }
 
-  toggleSidebar() {
-    this.isSidebarOpen.update((value) => !value);
-  }
-
-  closeSidebar() {
-    this.isSidebarOpen.set(false);
-  }
-
-  onItemSelected(itemName: string) {
-    this.currentPage.set(itemName);
-    if (this.isMobile()) {
-      this.closeSidebar();
-    }
-  }
-
-  openNewProjectModal() {
-    this.isNewProjectModalOpen.set(true);
-  }
-
-  closeNewProjectModal() {
-    this.isNewProjectModalOpen.set(false);
-  }
-
-  onProjectCreated(projectId: string) {
-    console.log('Project created:', projectId);
+  private initializeFocusManagement() {
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => {
+      document.getElementById('main-content')?.focus({ preventScroll: true });
+    });
   }
 
   private checkScreenSize() {
     if (typeof window !== 'undefined') {
-      const isMobileSize = window.innerWidth < 768;
-      this.isMobile.set(isMobileSize);
-
-      if (isMobileSize) {
-        this.isSidebarOpen.set(false);
-      }
+      this.isMobile.set(window.innerWidth < 768);
     }
   }
 
   private initializeResizeObserver() {
-    if (typeof window !== 'undefined' && 'ResizeObserver' in window) {
-      this.resizeObserver = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          const { width } = entry.contentRect;
-          const isMobileSize = width < 768;
-          this.isMobile.set(isMobileSize);
+    if (typeof window === 'undefined' || !('ResizeObserver' in window)) return;
 
-          if (isMobileSize && this.isSidebarOpen()) {
-            this.isSidebarOpen.set(false);
-          }
-        }
-      });
-
-      this.resizeObserver.observe(document.body);
-    } else {
-      this.setupResizeListener();
-    }
-  }
-
-  private setupResizeListener() {
-    if (typeof window !== 'undefined') {
-      const handleResize = () => this.checkScreenSize();
-      window.addEventListener('resize', handleResize);
-    }
+    this.resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        this.isMobile.set(entry.contentRect.width < 768);
+      }
+    });
+    this.resizeObserver.observe(document.body);
   }
 }

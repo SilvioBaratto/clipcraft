@@ -4,14 +4,37 @@
   <meta charset="utf-8">
   <title>ClipCraft - AI Content Studio</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <!-- Google Fonts - Space Grotesk for logo -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=space-grotesk:500,600,700|outfit:400,500,600|fira-code:400,500&display=swap" rel="stylesheet">
+  <script>
+    // iOS Safari ignores `user-scalable=no` on the viewport meta tag,
+    // so pinch-to-zoom and double-tap-zoom both still fire by default.
+    // The only reliable way to block them on iOS is to preventDefault
+    // on the proprietary `gesturestart`/`gesturechange` events (pinch)
+    // and track double-taps manually. We also block Ctrl+wheel zoom in
+    // embedded desktop browsers for consistency.
+    (function () {
+      var stop = function (e) { e.preventDefault(); };
+      document.addEventListener('gesturestart', stop, { passive: false });
+      document.addEventListener('gesturechange', stop, { passive: false });
+      document.addEventListener('gestureend', stop, { passive: false });
+      // Double-tap zoom guard (iOS treats two taps within 300 ms as zoom)
+      var lastTouchEnd = 0;
+      document.addEventListener('touchend', function (e) {
+        var now = Date.now();
+        if (now - lastTouchEnd <= 300) { e.preventDefault(); }
+        lastTouchEnd = now;
+      }, { passive: false });
+      // Ctrl/Cmd+wheel zoom (desktop Chrome embedded webviews)
+      document.addEventListener('wheel', function (e) {
+        if (e.ctrlKey || e.metaKey) e.preventDefault();
+      }, { passive: false });
+    })();
+  </script>
 </head>
-<body>
+<body class="bg-surface text-text font-sans">
   <app-root></app-root>
 </body>
 </html>

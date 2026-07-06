@@ -1,11 +1,6 @@
-import {
-  Injectable,
-  Logger,
-  OnModuleInit,
-  OnModuleDestroy,
-} from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { chromium, Browser, BrowserContext } from 'playwright-core';
-import * as sharp from 'sharp';
+import sharp = require('sharp');
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -33,16 +28,13 @@ export class RenderingService implements OnModuleInit, OnModuleDestroy {
 
     // Load profile logo once at startup
     const logoPath =
-      process.env.PROFILE_LOGO_PATH ||
-      path.resolve(__dirname, '..', '..', '..', 'profile.jpeg');
+      process.env.PROFILE_LOGO_PATH || path.resolve(__dirname, '..', '..', '..', 'profile.jpeg');
     try {
       if (fs.existsSync(logoPath)) {
         this.logoBuffer = fs.readFileSync(logoPath);
         this.logger.log(`Profile logo loaded from ${logoPath}`);
       } else {
-        this.logger.warn(
-          `Profile logo not found at ${logoPath}. Logo overlay will be skipped.`,
-        );
+        this.logger.warn(`Profile logo not found at ${logoPath}. Logo overlay will be skipped.`);
       }
     } catch (error) {
       this.logger.warn(`Could not load profile logo: ${error.message}`);

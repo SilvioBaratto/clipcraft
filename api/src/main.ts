@@ -34,14 +34,10 @@ async function bootstrap() {
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('ClipCraft API')
-    .setDescription(
-      'AI-powered content generation API for TikTok scripts, carousels, and animations',
-    )
+    .setDescription('AI-powered content generation API for animations')
     .setVersion('1.0')
     .addTag('health', 'Health check endpoints')
     .addTag('content', 'Content generation endpoints')
-    .addTag('tiktok', 'TikTok script generation')
-    .addTag('carousel', 'Carousel generation')
     .addTag('animation', 'Animation generation')
     .build();
 

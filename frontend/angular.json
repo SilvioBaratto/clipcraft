@@ -75,18 +75,12 @@
           "builder": "@angular/build:extract-i18n"
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
             "tsConfig": "tsconfig.spec.json",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "src/assets",
-                "output": "/assets/"
-              }
-            ],
-            "styles": [
-              "src/styles.css"
+            "providersFile": "src/test-providers.ts",
+            "include": [
+              "src/**/*.spec.ts"
             ]
           }
         }

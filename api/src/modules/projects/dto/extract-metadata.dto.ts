@@ -23,116 +23,6 @@ Seguimi per altre curiosità tech!`,
   userId?: string;
 }
 
-// Structured response DTOs for carousel slides
-export class CarouselSlideResponseDto {
-  @ApiProperty({ example: 'slide_123' })
-  id: string;
-
-  @ApiProperty({ example: 1 })
-  slideNumber: number;
-
-  @ApiProperty({ example: 'HOOK', enum: ['HOOK', 'CONTENT', 'CTA'] })
-  slideType: string;
-
-  @ApiProperty({ example: 'Did you know Netflix uses AI?' })
-  mainText: string;
-
-  @ApiPropertyOptional({ example: 'AI-powered' })
-  highlightText?: string;
-
-  @ApiPropertyOptional({ example: 'Every thumbnail is personalized' })
-  subText?: string;
-
-  @ApiPropertyOptional({ example: '<div>...</div>' })
-  generatedHtml?: string;
-}
-
-// Preview response DTO
-export class PreviewResponseDto {
-  @ApiProperty({ example: 'preview_123' })
-  id: string;
-
-  @ApiProperty({ example: 'instagram', enum: ['instagram', 'tiktok'] })
-  platform: string;
-
-  @ApiProperty({ example: 1080 })
-  width: number;
-
-  @ApiProperty({ example: 1920 })
-  height: number;
-
-  @ApiProperty({ example: '#FF5733' })
-  colorAccent: string;
-
-  @ApiPropertyOptional({ example: '#333333' })
-  secondaryAccent?: string;
-
-  @ApiProperty({ example: 'Netflix AI Thumbnails' })
-  mainText: string;
-
-  @ApiPropertyOptional({ example: 'AI-powered' })
-  highlightText?: string;
-
-  @ApiPropertyOptional({ example: 'Personalized for you' })
-  subText?: string;
-
-  @ApiPropertyOptional({ example: '🎬' })
-  emoji?: string;
-
-  @ApiPropertyOptional({ example: 'Preview' })
-  label?: string;
-
-  @ApiPropertyOptional({ example: '<div>...</div>' })
-  generatedHtml?: string;
-
-  @ApiProperty({ example: 'COMPLETED', enum: ['DRAFT', 'GENERATING', 'COMPLETED', 'FAILED'] })
-  status: string;
-
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  updatedAt: Date;
-}
-
-export class CarouselResponseDto {
-  @ApiProperty({ example: 'carousel_123' })
-  id: string;
-
-  @ApiProperty({ example: 'Netflix AI' })
-  topic: string;
-
-  @ApiProperty({ example: 5 })
-  totalSlides: number;
-
-  @ApiProperty({ example: '#FF5733' })
-  colorAccent: string;
-
-  @ApiPropertyOptional({ example: '#333333' })
-  secondaryAccent?: string;
-
-  @ApiProperty({ example: 'Instagram' })
-  platform?: string;
-
-  @ApiProperty({ example: '1080x1350' })
-  canvas?: string;
-
-  @ApiProperty({ example: '4:5' })
-  ratio?: string;
-
-  @ApiProperty({ example: 'COMPLETED', enum: ['DRAFT', 'GENERATING', 'COMPLETED', 'FAILED'] })
-  status: string;
-
-  @ApiProperty({ type: [CarouselSlideResponseDto] })
-  slides: CarouselSlideResponseDto[];
-
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  updatedAt: Date;
-}
-
 // Structured response DTOs for animation scenes
 export class AnimationSceneResponseDto {
   @ApiProperty({ example: 'scene_123' })
@@ -141,7 +31,10 @@ export class AnimationSceneResponseDto {
   @ApiProperty({ example: 1 })
   sceneNumber: number;
 
-  @ApiProperty({ example: 'INTRO', enum: ['INTRO', 'EXPLANATION', 'VISUALIZATION', 'COMPARISON', 'CTA'] })
+  @ApiProperty({
+    example: 'INTRO',
+    enum: ['INTRO', 'EXPLANATION', 'VISUALIZATION', 'COMPARISON', 'CTA'],
+  })
   sceneType: string;
 
   @ApiProperty({ example: 'Netflix personalizes thumbnails' })
@@ -150,7 +43,18 @@ export class AnimationSceneResponseDto {
   @ApiPropertyOptional({ example: 'Using machine learning' })
   subText?: string;
 
-  @ApiProperty({ example: 'CENTERED', enum: ['TWO_COLUMN', 'CENTERED', 'FLOW_DIAGRAM', 'SCATTER_PLOT', 'GRID', 'COMPARISON', 'DASHBOARD'] })
+  @ApiProperty({
+    example: 'CENTERED',
+    enum: [
+      'TWO_COLUMN',
+      'CENTERED',
+      'FLOW_DIAGRAM',
+      'SCATTER_PLOT',
+      'GRID',
+      'COMPARISON',
+      'DASHBOARD',
+    ],
+  })
   visualType: string;
 
   @ApiPropertyOptional({ example: '<div>...</div>' })
@@ -208,12 +112,6 @@ export class ProjectResponseDto {
   @ApiProperty({ example: false })
   hasAnimations: boolean;
 
-  @ApiProperty({ example: false })
-  hasCarousel: boolean;
-
-  @ApiProperty({ example: false })
-  hasPreview: boolean;
-
   @ApiProperty({
     description: 'The original script content',
     example: `## 🎯 Hook
@@ -225,14 +123,8 @@ Seguimi per altre curiosità tech!`,
   })
   sourceScript: string;
 
-  @ApiProperty({ description: 'Structured carousels with slides', type: [CarouselResponseDto] })
-  carousels: CarouselResponseDto[];
-
   @ApiProperty({ description: 'Structured animations with scenes', type: [AnimationResponseDto] })
   animations: AnimationResponseDto[];
-
-  @ApiProperty({ description: 'Preview thumbnails (Instagram, TikTok)', type: [PreviewResponseDto] })
-  previews: PreviewResponseDto[];
 
   @ApiProperty()
   createdAt: Date;

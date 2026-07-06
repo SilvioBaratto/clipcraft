@@ -6,8 +6,10 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including devDependencies for Angular CLI)
-RUN npm ci
+# Install all dependencies (including devDependencies for Angular CLI).
+# --legacy-peer-deps: lucide-angular's peerDependencies range lags Angular 21,
+# which npm 10's strict resolver rejects; the workspace installs with this flag.
+RUN npm ci --legacy-peer-deps
 
 # Copy application source
 COPY . .

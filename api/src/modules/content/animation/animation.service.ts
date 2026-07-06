@@ -70,10 +70,7 @@ export class AnimationService {
    * @param topic - The topic/script for generation
    * @returns The saved animation with scenes
    */
-  async generateAndSaveAnimation(
-    projectId: string,
-    topic: string,
-  ): Promise<AnimationWithScenes> {
+  async generateAndSaveAnimation(projectId: string, topic: string): Promise<AnimationWithScenes> {
     try {
       this.logger.log(`Generating and saving animation for project: ${projectId}`);
 
@@ -97,7 +94,14 @@ export class AnimationService {
       // Map visual types from BAML to Prisma enums
       const mapVisualType = (
         type: string,
-      ): 'TWO_COLUMN' | 'CENTERED' | 'FLOW_DIAGRAM' | 'SCATTER_PLOT' | 'GRID' | 'COMPARISON' | 'DASHBOARD' => {
+      ):
+        | 'TWO_COLUMN'
+        | 'CENTERED'
+        | 'FLOW_DIAGRAM'
+        | 'SCATTER_PLOT'
+        | 'GRID'
+        | 'COMPARISON'
+        | 'DASHBOARD' => {
         const typeUpper = type.toUpperCase().replace(/-/g, '_');
         if (typeUpper === 'TWO_COLUMN') return 'TWO_COLUMN';
         if (typeUpper === 'CENTERED') return 'CENTERED';
@@ -147,10 +151,7 @@ export class AnimationService {
 
       return savedAnimation;
     } catch (error) {
-      this.logger.error(
-        `Failed to generate and save animation: ${error.message}`,
-        error.stack,
-      );
+      this.logger.error(`Failed to generate and save animation: ${error.message}`, error.stack);
       throw new InternalServerErrorException(
         'Failed to generate animation. Please try again later.',
       );

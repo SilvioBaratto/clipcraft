@@ -1,7 +1,7 @@
 // Simple test function to verify Anthropic client works
 
 function HelloWorld(name: string) -> string {
-  client CustomGPT5
+  client GPT
   prompt #"
     {{ _.role("user") }}
     Say hello to {{ name }} in a friendly way. Keep it short and simple.

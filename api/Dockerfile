@@ -6,8 +6,12 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including devDependencies for build)
-RUN npm ci
+# Install all dependencies (including devDependencies for build).
+# Drop the lockfile + use `npm install` (not `npm ci`) so platform-specific
+# optional deps (sharp + @boundaryml/baml native bindings) resolve for the
+# image's OS/arch. A host-generated lockfile triggers npm's optional-deps bug
+# (npm/cli#4828), leaving native bindings missing on a different platform.
+RUN rm -f package-lock.json && npm install --no-audit --no-fund
 
 # Copy application source
 COPY . .
@@ -41,8 +45,9 @@ ENV CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 # Copy package files
 COPY package*.json ./
 
-# Install only production dependencies
-RUN npm ci --only=production
+# Install only production dependencies (drop lockfile so sharp's native
+# bindings resolve for this image's platform — see builder stage note).
+RUN rm -f package-lock.json && npm install --omit=dev --no-audit --no-fund
 
 # Copy built app from builder stage
 COPY --from=builder /app/dist ./dist
@@ -52,6 +57,7 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+COPY --from=builder /app/node_modules/@boundaryml ./node_modules/@boundaryml
 
 # Create non-root user for security
 RUN addgroup --gid 1001 nestjs && \

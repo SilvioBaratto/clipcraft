@@ -1,30 +1,22 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Project, Carousel, CarouselSlide, Animation, AnimationScene, Preview } from '@prisma/client';
-import * as archiver from 'archiver';
+import { Project, Animation, AnimationScene } from '@prisma/client';
+import archiver = require('archiver');
 import type { Response } from 'express';
 import { BamlService } from '../../shared/baml/baml.service';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { RenderingService } from '../../shared/rendering/rendering.service';
-import { CarouselService } from '../content/carousel/carousel.service';
 import { AnimationService } from '../content/animation/animation.service';
-import { PreviewService } from '../content/preview/preview.service';
 import {
   CreateProjectDto,
   ProjectResponseDto,
-  CarouselResponseDto,
-  CarouselSlideResponseDto,
   AnimationResponseDto,
   AnimationSceneResponseDto,
-  PreviewResponseDto,
 } from './dto/extract-metadata.dto';
 
 // Types for Prisma includes
-type CarouselWithSlides = Carousel & { slides: CarouselSlide[] };
 type AnimationWithScenes = Animation & { scenes: AnimationScene[] };
 type ProjectWithRelations = Project & {
-  carousels: CarouselWithSlides[];
   animations: AnimationWithScenes[];
-  previews: Preview[];
 };
 
 @Injectable()
@@ -35,9 +27,7 @@ export class ProjectsService {
     private readonly bamlService: BamlService,
     private readonly prisma: PrismaService,
     private readonly renderingService: RenderingService,
-    private readonly carouselService: CarouselService,
     private readonly animationService: AnimationService,
-    private readonly previewService: PreviewService,
   ) {}
 
   async createProject(dto: CreateProjectDto): Promise<ProjectResponseDto> {
@@ -64,13 +54,9 @@ export class ProjectsService {
         userId: dto.userId || null,
       },
       include: {
-        carousels: {
-          include: { slides: { orderBy: { slideNumber: 'asc' } } },
-        },
         animations: {
           include: { scenes: { orderBy: { sceneNumber: 'asc' } } },
         },
-        previews: true,
       },
     });
 
@@ -83,15 +69,8 @@ export class ProjectsService {
     const projects = await this.prisma.project.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        carousels: {
-          include: { slides: { orderBy: { slideNumber: 'asc' } } },
-          orderBy: { createdAt: 'desc' },
-        },
         animations: {
           include: { scenes: { orderBy: { sceneNumber: 'asc' } } },
-          orderBy: { createdAt: 'desc' },
-        },
-        previews: {
           orderBy: { createdAt: 'desc' },
         },
       },
@@ -104,15 +83,8 @@ export class ProjectsService {
     const project = await this.prisma.project.findUnique({
       where: { id },
       include: {
-        carousels: {
-          include: { slides: { orderBy: { slideNumber: 'asc' } } },
-          orderBy: { createdAt: 'desc' },
-        },
         animations: {
           include: { scenes: { orderBy: { sceneNumber: 'asc' } } },
-          orderBy: { createdAt: 'desc' },
-        },
-        previews: {
           orderBy: { createdAt: 'desc' },
         },
       },
@@ -148,15 +120,8 @@ export class ProjectsService {
     const project = await this.prisma.project.findUnique({
       where: { id },
       include: {
-        carousels: {
-          include: { slides: { orderBy: { slideNumber: 'asc' } } },
-          orderBy: { createdAt: 'desc' },
-        },
         animations: {
           include: { scenes: { orderBy: { sceneNumber: 'asc' } } },
-          orderBy: { createdAt: 'desc' },
-        },
-        previews: {
           orderBy: { createdAt: 'desc' },
         },
       },
@@ -194,53 +159,15 @@ export class ProjectsService {
       }
     }
 
-    // Carousel: dimensions from canvas field, with logo
-    for (const carousel of project.carousels) {
-      const [w, h] = (carousel.canvas || '1080x1350')
-        .split('x')
-        .map(Number);
-      for (const slide of carousel.slides) {
-        if (slide.generatedHtml) {
-          jobs.push({
-            folder: 'carousel',
-            filename: `slide-${slide.slideNumber}.png`,
-            html: slide.generatedHtml,
-            width: w || 1080,
-            height: h || 1350,
-            skipLogo: false,
-          });
-        }
-      }
-    }
-
-    // Previews: use preview dimensions, with logo
-    for (const preview of project.previews) {
-      if (preview.generatedHtml) {
-        jobs.push({
-          folder: 'previews',
-          filename: `${preview.platform}.png`,
-          html: preview.generatedHtml,
-          width: preview.width,
-          height: preview.height,
-          skipLogo: false,
-        });
-      }
-    }
-
     const zipName = `${project.folderName || project.name}.zip`;
 
     res.setHeader('Content-Type', 'application/zip');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="${zipName}"`,
-    );
+    res.setHeader('Content-Disposition', `attachment; filename="${zipName}"`);
 
     const archive = archiver('zip', { zlib: { level: 5 } });
     archive.pipe(res);
 
-    this.logger.log(
-      `Starting ZIP render for project ${id}: ${jobs.length} jobs`,
-    );
+    this.logger.log(`Starting ZIP render for project ${id}: ${jobs.length} jobs`);
 
     for (const job of jobs) {
       try {
@@ -253,9 +180,7 @@ export class ProjectsService {
         archive.append(pngBuffer, { name: `${job.folder}/${job.filename}` });
         this.logger.log(`Rendered ${job.folder}/${job.filename}`);
       } catch (error) {
-        this.logger.error(
-          `Failed to render ${job.folder}/${job.filename}: ${error.message}`,
-        );
+        this.logger.error(`Failed to render ${job.folder}/${job.filename}: ${error.message}`);
       }
     }
 
@@ -265,21 +190,14 @@ export class ProjectsService {
 
   async updateStatus(
     id: string,
-    status: { hasAnimations?: boolean; hasCarousel?: boolean; hasPreview?: boolean },
+    status: { hasAnimations?: boolean },
   ): Promise<ProjectResponseDto> {
     const project = await this.prisma.project.update({
       where: { id },
       data: status,
       include: {
-        carousels: {
-          include: { slides: { orderBy: { slideNumber: 'asc' } } },
-          orderBy: { createdAt: 'desc' },
-        },
         animations: {
           include: { scenes: { orderBy: { sceneNumber: 'asc' } } },
-          orderBy: { createdAt: 'desc' },
-        },
-        previews: {
           orderBy: { createdAt: 'desc' },
         },
       },
@@ -296,15 +214,8 @@ export class ProjectsService {
       where: { id },
       data: { sourceScript, ...(hook !== undefined && { hook }) },
       include: {
-        carousels: {
-          include: { slides: { orderBy: { slideNumber: 'asc' } } },
-          orderBy: { createdAt: 'desc' },
-        },
         animations: {
           include: { scenes: { orderBy: { sceneNumber: 'asc' } } },
-          orderBy: { createdAt: 'desc' },
-        },
-        previews: {
           orderBy: { createdAt: 'desc' },
         },
       },
@@ -314,41 +225,15 @@ export class ProjectsService {
   }
 
   /**
-   * Generate all content (carousel, animations, and previews) for a project
+   * Generate all content (animations) for a project
    */
   async generateAllContent(id: string): Promise<ProjectResponseDto> {
-    await this.generateCarouselContent(id);
     await this.generateAnimationContent(id);
-    await this.generatePreviewContent(id);
     return this.findById(id);
   }
 
   /**
-   * Generate carousel content for a project (step 1/3)
-   */
-  async generateCarouselContent(id: string): Promise<ProjectResponseDto> {
-    const project = await this.prisma.project.findUnique({ where: { id } });
-    if (!project) throw new NotFoundException(`Project with ID ${id} not found`);
-
-    this.logger.log(`Generating carousel for project ${id}`);
-    await this.prisma.carousel.deleteMany({ where: { projectId: id } });
-
-    await this.carouselService.generateAndSaveCarousel(
-      id,
-      project.sourceScript,
-      'Instagram',
-      '1080x1350',
-      '4:5',
-      1080,
-      1350,
-    );
-
-    await this.prisma.project.update({ where: { id }, data: { hasCarousel: true } });
-    return this.findById(id);
-  }
-
-  /**
-   * Generate animation content for a project (step 2/3)
+   * Generate animation content for a project
    */
   async generateAnimationContent(id: string): Promise<ProjectResponseDto> {
     const project = await this.prisma.project.findUnique({ where: { id } });
@@ -363,31 +248,6 @@ export class ProjectsService {
     return this.findById(id);
   }
 
-  /**
-   * Generate preview content for a project (step 3/3)
-   */
-  async generatePreviewContent(id: string): Promise<ProjectResponseDto> {
-    const project = await this.prisma.project.findUnique({
-      where: { id },
-      include: { carousels: true },
-    });
-    if (!project) throw new NotFoundException(`Project with ID ${id} not found`);
-
-    this.logger.log(`Generating previews for project ${id}`);
-    await this.prisma.preview.deleteMany({ where: { projectId: id } });
-
-    const carousel = project.carousels[0];
-    await this.previewService.generateAllPreviewsForProject(
-      id,
-      project.hook,
-      carousel?.colorAccent || '#FF5733',
-      carousel?.secondaryAccent || undefined,
-    );
-
-    await this.prisma.project.update({ where: { id }, data: { hasPreview: true } });
-    return this.findById(id);
-  }
-
   private toResponseDto(project: ProjectWithRelations): ProjectResponseDto {
     return {
       id: project.id,
@@ -397,63 +257,10 @@ export class ProjectsService {
       hook: project.hook,
       thumbnail: project.thumbnail || '',
       hasAnimations: project.hasAnimations,
-      hasCarousel: project.hasCarousel,
-      hasPreview: project.hasPreview,
       sourceScript: project.sourceScript,
-      carousels: project.carousels.map((c) => this.toCarouselDto(c)),
       animations: project.animations.map((a) => this.toAnimationDto(a)),
-      previews: project.previews.map((p) => this.toPreviewDto(p)),
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
-    };
-  }
-
-  private toCarouselDto(carousel: CarouselWithSlides): CarouselResponseDto {
-    return {
-      id: carousel.id,
-      topic: carousel.topic,
-      totalSlides: carousel.totalSlides,
-      colorAccent: carousel.colorAccent,
-      secondaryAccent: carousel.secondaryAccent || undefined,
-      platform: carousel.platform || undefined,
-      canvas: carousel.canvas || undefined,
-      ratio: carousel.ratio || undefined,
-      status: carousel.status,
-      slides: carousel.slides.map((s) => this.toSlideDto(s)),
-      createdAt: carousel.createdAt,
-      updatedAt: carousel.updatedAt,
-    };
-  }
-
-  private toPreviewDto(preview: Preview): PreviewResponseDto {
-    return {
-      id: preview.id,
-      platform: preview.platform,
-      width: preview.width,
-      height: preview.height,
-      colorAccent: preview.colorAccent,
-      secondaryAccent: preview.secondaryAccent || undefined,
-      mainText: preview.mainText,
-      highlightText: preview.highlightText || undefined,
-      subText: preview.subText || undefined,
-      emoji: preview.emoji || undefined,
-      label: preview.label || undefined,
-      generatedHtml: preview.generatedHtml || undefined,
-      status: preview.status,
-      createdAt: preview.createdAt,
-      updatedAt: preview.updatedAt,
-    };
-  }
-
-  private toSlideDto(slide: CarouselSlide): CarouselSlideResponseDto {
-    return {
-      id: slide.id,
-      slideNumber: slide.slideNumber,
-      slideType: slide.slideType,
-      mainText: slide.mainText,
-      highlightText: slide.highlightText || undefined,
-      subText: slide.subText || undefined,
-      generatedHtml: slide.generatedHtml || undefined,
     };
   }
 

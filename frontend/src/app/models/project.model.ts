@@ -14,33 +14,6 @@ export interface ScriptSection {
   testo: string;
 }
 
-// Structured carousel slide from database
-export interface CarouselSlide {
-  id: string;
-  slideNumber: number;
-  slideType: 'HOOK' | 'CONTENT' | 'CTA';
-  mainText: string;
-  highlightText?: string;
-  subText?: string;
-  generatedHtml?: string;
-}
-
-// Structured carousel from database
-export interface Carousel {
-  id: string;
-  topic: string;
-  totalSlides: number;
-  colorAccent: string;
-  secondaryAccent?: string;
-  platform?: string;
-  canvas?: string;
-  ratio?: string;
-  status: 'DRAFT' | 'GENERATING' | 'COMPLETED' | 'FAILED';
-  slides: CarouselSlide[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 // Structured animation scene from database
 export interface AnimationScene {
   id: string;
@@ -71,31 +44,8 @@ export interface Project {
   folderName: string;
   script: Script;
   hasAnimations: boolean;
-  hasCarousel: boolean;
-  hasPreview: boolean;
-  carousels: Carousel[];
   animations: Animation[];
-  previews: Preview[];
   createdAt: Date;
   updatedAt: Date;
   thumbnail?: string;
-}
-
-// Structured preview from database
-export interface Preview {
-  id: string;
-  platform: 'instagram' | 'tiktok';
-  width: number;
-  height: number;
-  colorAccent: string;
-  secondaryAccent?: string;
-  mainText: string;
-  highlightText?: string;
-  subText?: string;
-  emoji?: string;
-  label?: string;
-  generatedHtml?: string;
-  status: 'DRAFT' | 'GENERATING' | 'COMPLETED' | 'FAILED';
-  createdAt: Date;
-  updatedAt: Date;
 }

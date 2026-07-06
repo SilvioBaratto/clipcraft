@@ -1,11 +1,12 @@
 import { Component, signal, input, output, inject, ChangeDetectionStrategy, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { LucideAngularModule } from 'lucide-angular';
 import { ProjectService } from '../../services/project.service';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-new-project-modal',
-  imports: [FormsModule],
+  imports: [FormsModule, LucideAngularModule],
   templateUrl: './new-project-modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

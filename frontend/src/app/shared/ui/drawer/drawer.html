@@ -1,0 +1,20 @@
+@if (open()) {
+  <!-- Overlay backdrop -->
+  <div
+    class="fixed inset-0 z-40 bg-black/20 md:hidden"
+    data-testid="drawer-overlay"
+    aria-hidden="true"
+    (click)="handleClose()"
+  ></div>
+}
+
+<!-- Panel — always in DOM so translate-x transition plays -->
+<aside
+  [class]="panelClasses()"
+  [id]="drawerId() || null"
+  appFocusTrap
+  [active]="isTrapActive()"
+  (close)="handleClose()"
+>
+  <ng-content />
+</aside>

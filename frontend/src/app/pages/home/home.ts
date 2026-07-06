@@ -1,12 +1,17 @@
 import { Component, inject, signal, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
 import { ProjectService } from '../../services/project.service';
+import { NewProjectModalComponent } from '../../shared/new-project-modal/new-project-modal';
+import { ButtonComponent } from '../../shared/ui/button/button';
+import { SpinnerComponent } from '../../shared/ui/spinner/spinner';
 
 @Component({
   selector: 'app-home',
+  imports: [LucideAngularModule, NewProjectModalComponent, ButtonComponent, SpinnerComponent],
   templateUrl: './home.html',
-  styleUrl: './home.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block' },
 })
 export class HomeComponent implements OnInit {
   private readonly projectService = inject(ProjectService);
@@ -19,8 +24,19 @@ export class HomeComponent implements OnInit {
 
   deletingId = signal<string | null>(null);
 
+  // New Project modal state
+  isNewProjectModalOpen = signal(false);
+
   ngOnInit() {
     this.projectService.loadProjects();
+  }
+
+  openNewProjectModal() {
+    this.isNewProjectModalOpen.set(true);
+  }
+
+  closeNewProjectModal() {
+    this.isNewProjectModalOpen.set(false);
   }
 
   onProjectClick(projectId: string) {
