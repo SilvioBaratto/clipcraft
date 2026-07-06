@@ -29,7 +29,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install --no-audit --no-fund
+      # Drop the host-generated lockfile so npm resolves the Linux native
+      # bindings (@boundaryml/baml, sharp) — npm/cli#4828, as api/Dockerfile does.
+      - run: rm -f package-lock.json && npm install --no-audit --no-fund
       - run: npm run lint
 
   api-build:
@@ -43,7 +45,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install --no-audit --no-fund
+      # Drop the host-generated lockfile so npm resolves the Linux native
+      # bindings (@boundaryml/baml, sharp) — npm/cli#4828, as api/Dockerfile does.
+      - run: rm -f package-lock.json && npm install --no-audit --no-fund
       - run: npm run build
 
   api-test:
@@ -57,7 +61,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install --no-audit --no-fund
+      # Drop the host-generated lockfile so npm resolves the Linux native
+      # bindings (@boundaryml/baml, sharp) — npm/cli#4828, as api/Dockerfile does.
+      - run: rm -f package-lock.json && npm install --no-audit --no-fund
       - run: npm test
 
   frontend-build:
