@@ -10,6 +10,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Install notes:
+# - api uses native deps (sharp, @boundaryml/baml) whose platform-specific
+#   optional packages (@emnapi/*) make a host-generated lockfile fail `npm ci`
+#   on Linux — so we `npm install` (matches api/Dockerfile).
+# - frontend pins lucide-angular / vitest whose peer ranges lag Angular 21, so
+#   it installs with --legacy-peer-deps (matches frontend/Dockerfile).
+
 jobs:
   api-lint:
     name: API Lint
@@ -22,9 +29,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: api/package-lock.json
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npm run lint
 
   api-build:
@@ -38,9 +43,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: api/package-lock.json
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npm run build
 
   api-test:
@@ -54,10 +57,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: api/package-lock.json
-      - run: npm ci
-      - run: npm run test
+      - run: npm install --no-audit --no-fund
+      - run: npm test
 
   frontend-build:
     name: Frontend Build
@@ -70,9 +71,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-      - run: npm ci
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
       - run: npm run build
 
   frontend-test:
@@ -86,7 +85,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-      - run: npm ci
-      - run: npm run test -- --no-watch --browsers=ChromeHeadless
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
+      - run: npm test
