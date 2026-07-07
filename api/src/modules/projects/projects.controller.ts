@@ -90,8 +90,7 @@ export class ProjectsController {
   @Post(':id/generate')
   @ApiOperation({
     summary: 'Generate all content for a project',
-    description:
-      'Generates animation scenes for a project and saves them to the database',
+    description: 'Generates animation scenes for a project and saves them to the database',
   })
   @ApiResponse({
     status: 201,

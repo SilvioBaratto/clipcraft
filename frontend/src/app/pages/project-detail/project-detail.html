@@ -94,7 +94,7 @@
             <div>
               <h3 class="text-lg font-semibold text-text">Generate Content</h3>
               <p class="mt-1 text-sm text-text-secondary">
-                Generate animation scenes from your script
+                Generate animation scenes + Instagram/TikTok covers from your script
               </p>
             </div>
             <button
@@ -161,6 +161,35 @@
               </div>
             }
 
+            <!-- Cover previews step -->
+            @if (isTypeSelected('animations')) {
+              <div
+                class="flex items-center gap-2 rounded-lg p-3"
+                [class]="{
+                  'bg-primary-light': currentStep() === 'previews',
+                  'bg-signature/10': currentStep() === 'complete',
+                  'bg-surface-inset': currentStep() !== 'previews' && currentStep() !== 'complete',
+                }"
+              >
+                @if (currentStep() === 'previews') {
+                  <lucide-icon name="loader-2" class="w-5 h-5 shrink-0 text-primary animate-spin" aria-hidden="true" />
+                } @else if (currentStep() === 'complete') {
+                  <lucide-icon name="Check" class="w-5 h-5 shrink-0 text-signature" aria-hidden="true" />
+                } @else {
+                  <div class="w-5 h-5 shrink-0 rounded-full border-2 border-border"></div>
+                }
+                <span
+                  class="text-sm font-medium"
+                  [class]="{
+                    'text-primary': currentStep() === 'previews',
+                    'text-signature': currentStep() === 'complete',
+                    'text-text-tertiary': currentStep() !== 'previews' && currentStep() !== 'complete',
+                  }"
+                  >Cover previews</span
+                >
+              </div>
+            }
+
             <!-- Error Message -->
             @if (generationError()) {
               <div class="flex items-center gap-2 rounded-xl border border-danger/30 bg-danger/10 p-4 text-danger">
@@ -182,10 +211,10 @@
     </div>
 
     <!-- Expanded Content Panel -->
-    @if (activeTab()) {
+    @if (activeTab(); as tab) {
       <div class="overflow-hidden rounded-2xl border border-border bg-surface-raised shadow-sm">
         <div class="flex items-center justify-between border-b border-border p-6">
-          <h3 class="text-lg font-semibold text-text">Animation Scenes</h3>
+          <h3 class="text-lg font-semibold text-text">{{ tab === 'preview' ? 'Cover Preview' : 'Animation Scenes' }}</h3>
           <button
             (click)="activeTab.set(null)"
             class="rounded-lg p-2 text-text-tertiary transition-colors hover:bg-surface-inset hover:text-text"
@@ -194,6 +223,7 @@
           </button>
         </div>
         <div class="p-6">
+          @if (tab === 'animations') {
           <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
             @if (animations().length > 0 && animations()[0].scenes.length > 0) {
               @for (scene of animations()[0].scenes; track scene.id) {
@@ -220,6 +250,18 @@
                     >
                       <lucide-icon name="Maximize2" class="w-4 h-4" aria-hidden="true" />
                     </button>
+                    <button
+                      (click)="repairScene(scene)"
+                      [disabled]="repairingSceneId() !== null"
+                      class="absolute left-2 top-2 z-10 rounded-lg bg-black/50 p-1.5 text-white opacity-0 transition-all hover:bg-black/70 group-hover/scene:opacity-100 cursor-pointer disabled:cursor-wait disabled:opacity-100"
+                      title="Repair scene with AI"
+                    >
+                      @if (repairingSceneId() === scene.id) {
+                        <lucide-icon name="loader-2" class="w-4 h-4 animate-spin" aria-hidden="true" />
+                      } @else {
+                        <lucide-icon name="Wrench" class="w-4 h-4" aria-hidden="true" />
+                      }
+                    </button>
                   }
                   <div class="absolute bottom-2 left-2 z-10 rounded bg-signature px-2 py-1 text-xs font-medium text-white">
                     Scene {{ scene.sceneNumber }}
@@ -234,6 +276,113 @@
               }
             }
           </div>
+          }
+          @if (tab === 'preview') {
+            @if (preview(); as pv) {
+              <div class="space-y-6">
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <!-- Instagram cover -->
+                  <div class="flex flex-col items-center gap-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-text-secondary">Instagram · 9:16</span>
+                    <div class="overflow-hidden rounded-xl border border-border bg-surface-inset">
+                      <img [src]="previewImageUrl('instagram')" alt="Instagram cover" class="block h-auto w-full max-w-[240px]" />
+                    </div>
+                    <button
+                      (click)="savePreviewToPhotos('instagram')"
+                      [disabled]="savingPlatform() === 'instagram'"
+                      class="inline-flex min-h-11 w-full max-w-[240px] items-center justify-center gap-2 rounded-md bg-text px-4 py-2 text-sm font-medium text-surface-raised transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      @if (savingPlatform() === 'instagram') {
+                        <lucide-icon name="loader-2" class="w-4 h-4 animate-spin" aria-hidden="true" />
+                        <span>Saving…</span>
+                      } @else {
+                        <lucide-icon name="Download" class="w-4 h-4" aria-hidden="true" />
+                        <span>Save to Photos</span>
+                      }
+                    </button>
+                  </div>
+                  <!-- TikTok cover -->
+                  <div class="flex flex-col items-center gap-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-text-secondary">TikTok · 3:4</span>
+                    <div class="overflow-hidden rounded-xl border border-border bg-surface-inset">
+                      <img [src]="previewImageUrl('tiktok')" alt="TikTok cover" class="block h-auto w-full max-w-[240px]" />
+                    </div>
+                    <button
+                      (click)="savePreviewToPhotos('tiktok')"
+                      [disabled]="savingPlatform() === 'tiktok'"
+                      class="inline-flex min-h-11 w-full max-w-[240px] items-center justify-center gap-2 rounded-md bg-text px-4 py-2 text-sm font-medium text-surface-raised transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      @if (savingPlatform() === 'tiktok') {
+                        <lucide-icon name="loader-2" class="w-4 h-4 animate-spin" aria-hidden="true" />
+                        <span>Saving…</span>
+                      } @else {
+                        <lucide-icon name="Download" class="w-4 h-4" aria-hidden="true" />
+                        <span>Save to Photos</span>
+                      }
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Override controls -->
+                <div class="space-y-4 rounded-xl border border-border bg-surface-inset p-5">
+                  <h4 class="text-sm font-semibold text-text">Change template</h4>
+                  <div class="grid gap-4 sm:grid-cols-2">
+                    <label class="block">
+                      <span class="mb-1 block text-xs font-medium text-text-secondary">Template</span>
+                      <select
+                        [ngModel]="overrideTemplateId()"
+                        (ngModelChange)="overrideTemplateId.set($event)"
+                        class="w-full rounded-md border border-border bg-surface-raised px-3 py-2 text-sm text-text focus:border-primary focus:outline-none"
+                      >
+                        @for (t of previewTemplates(); track t.id) {
+                          <option [value]="t.id">{{ t.name }}</option>
+                        }
+                      </select>
+                    </label>
+                    @if (overrideNeedsTitle()) {
+                      <label class="block">
+                        <span class="mb-1 block text-xs font-medium text-text-secondary">Title</span>
+                        <input
+                          [ngModel]="overrideTitle()"
+                          (ngModelChange)="overrideTitle.set($event)"
+                          type="text"
+                          placeholder="Cover headline"
+                          class="w-full rounded-md border border-border bg-surface-raised px-3 py-2 text-sm text-text focus:border-primary focus:outline-none"
+                        />
+                      </label>
+                    }
+                    @if (overrideNeedsParte()) {
+                      <label class="block">
+                        <span class="mb-1 block text-xs font-medium text-text-secondary">Parte</span>
+                        <input
+                          [ngModel]="overrideParte()"
+                          (ngModelChange)="overrideParte.set($event)"
+                          type="number"
+                          min="1"
+                          class="w-full rounded-md border border-border bg-surface-raised px-3 py-2 text-sm text-text focus:border-primary focus:outline-none"
+                        />
+                      </label>
+                    }
+                  </div>
+                  <button
+                    (click)="applyPreviewOverride()"
+                    [disabled]="isApplyingOverride()"
+                    class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    @if (isApplyingOverride()) {
+                      <lucide-icon name="loader-2" class="w-4 h-4 animate-spin" aria-hidden="true" />
+                      <span>Rendering…</span>
+                    } @else {
+                      <lucide-icon name="Sparkles" class="w-4 h-4" aria-hidden="true" />
+                      <span>Apply &amp; re-render</span>
+                    }
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <p class="text-sm text-text-secondary">No cover yet — generate the project to create previews.</p>
+            }
+          }
         </div>
       </div>
     }
@@ -277,6 +426,133 @@
               [title]="'Scene ' + scene.sceneNumber + ' (fullscreen)'"
             ></iframe>
           }
+        </div>
+      </div>
+    }
+
+    <!-- Scene Repair — before / after -->
+    @if (repairModal(); as rm) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+        <div class="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-raised shadow-2xl">
+          <!-- Header -->
+          <div class="flex items-center justify-between gap-4 border-b border-border p-5">
+            <div class="flex items-center gap-3">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-light text-primary">
+                <lucide-icon name="Wrench" class="w-5 h-5" aria-hidden="true" />
+              </div>
+              <div>
+                <h3 class="text-base font-semibold text-text">Repair · Scene {{ rm.sceneNumber }}</h3>
+                <p class="text-xs text-text-secondary">
+                  @switch (rm.status) {
+                    @case ('loading') { Analyzing the scene with Opus… }
+                    @case ('error') { Repair failed }
+                    @default { {{ rm.changed ? 'Suggested fix ready' : 'No changes needed' }} }
+                  }
+                </p>
+              </div>
+            </div>
+            <button
+              (click)="closeRepair()"
+              [disabled]="isSavingRepair()"
+              class="rounded-lg p-2 text-text-tertiary transition-colors hover:bg-surface-inset hover:text-text"
+            >
+              <lucide-icon name="X" class="w-5 h-5" aria-hidden="true" />
+            </button>
+          </div>
+
+          <!-- Summary banner -->
+          @if (rm.status === 'done' && rm.summary) {
+            <div
+              class="flex items-start gap-2 border-b border-border px-5 py-3"
+              [class]="rm.changed ? 'bg-signature/5' : 'bg-surface-inset'"
+            >
+              <lucide-icon
+                [name]="rm.changed ? 'Sparkles' : 'Check'"
+                class="mt-0.5 w-4 h-4 shrink-0"
+                [class]="rm.changed ? 'text-signature' : 'text-text-tertiary'"
+                aria-hidden="true"
+              />
+              <p class="text-sm text-text-secondary">{{ rm.summary }}</p>
+            </div>
+          }
+
+          <!-- Body -->
+          <div class="overflow-y-auto p-5">
+            @if (rm.status === 'error') {
+              <div class="flex items-center gap-2 rounded-xl border border-danger/30 bg-danger/10 p-4 text-danger">
+                <lucide-icon name="circle-alert" class="w-5 h-5" aria-hidden="true" />
+                <span class="text-sm font-medium">Couldn't repair this scene. Please try again.</span>
+              </div>
+            } @else {
+              <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <!-- Before -->
+                <div class="flex flex-col gap-2">
+                  <span class="text-xs font-semibold uppercase tracking-wide text-text-tertiary">Before</span>
+                  <div class="overflow-hidden rounded-xl border border-border bg-black">
+                    <div appScaledIframe [contentWidth]="1920" [contentHeight]="1080" class="w-full">
+                      <iframe [srcdoc]="rm.originalHtml | safeHtml" sandbox="allow-scripts" title="Before"></iframe>
+                    </div>
+                  </div>
+                </div>
+                <!-- After -->
+                <div class="flex flex-col gap-2">
+                  <span
+                    class="text-xs font-semibold uppercase tracking-wide"
+                    [class]="rm.status === 'done' && rm.changed ? 'text-signature' : 'text-text-tertiary'"
+                    >After</span
+                  >
+                  <div
+                    class="overflow-hidden rounded-xl border bg-black"
+                    [class]="rm.status === 'done' && rm.changed ? 'border-signature/40' : 'border-border'"
+                  >
+                    @if (rm.status === 'done') {
+                      <div appScaledIframe [contentWidth]="1920" [contentHeight]="1080" class="w-full">
+                        <iframe [srcdoc]="rm.repairedHtml | safeHtml" sandbox="allow-scripts" title="After"></iframe>
+                      </div>
+                    } @else {
+                      <div class="flex aspect-video w-full items-center justify-center gap-2 text-text-tertiary">
+                        <lucide-icon name="loader-2" class="w-6 h-6 animate-spin text-primary" aria-hidden="true" />
+                        <span class="text-sm">Repairing…</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Footer -->
+          <div class="flex items-center justify-end gap-3 border-t border-border p-4">
+            @if (rm.status === 'done' && rm.changed) {
+              <button
+                (click)="closeRepair()"
+                [disabled]="isSavingRepair()"
+                class="px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-text disabled:opacity-50"
+              >
+                Discard
+              </button>
+              <button
+                (click)="keepRepair()"
+                [disabled]="isSavingRepair()"
+                class="inline-flex min-h-11 items-center gap-2 rounded-md bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                @if (isSavingRepair()) {
+                  <lucide-icon name="loader-2" class="w-4 h-4 animate-spin" aria-hidden="true" />
+                  <span>Saving…</span>
+                } @else {
+                  <lucide-icon name="Check" class="w-4 h-4" aria-hidden="true" />
+                  <span>Keep &amp; save</span>
+                }
+              </button>
+            } @else {
+              <button
+                (click)="closeRepair()"
+                class="inline-flex min-h-11 items-center gap-2 rounded-md bg-surface-inset px-5 py-2 text-sm font-medium text-text transition-colors hover:bg-border"
+              >
+                Close
+              </button>
+            }
+          </div>
         </div>
       </div>
     }

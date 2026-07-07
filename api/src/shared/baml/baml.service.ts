@@ -1,6 +1,12 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import { Image } from '@boundaryml/baml';
 import { b } from '../../../baml_client';
-import type { AnimationSet, AnimationScene } from '../../../baml_client/types';
+import type {
+  AnimationSet,
+  AnimationScene,
+  PreviewTemplateOption,
+  PreviewSelection,
+} from '../../../baml_client/types';
 
 @Injectable()
 export class BamlService implements OnModuleInit {
@@ -8,6 +14,56 @@ export class BamlService implements OnModuleInit {
 
   onModuleInit() {
     this.logger.log('BAML Client initialized successfully');
+  }
+
+  /**
+   * Pick the best-fitting cover template for a video and (for freeform
+   * templates) write a short Italian title.
+   */
+  async pickPreviewTemplate(
+    hook: string,
+    templates: PreviewTemplateOption[],
+  ): Promise<PreviewSelection> {
+    try {
+      this.logger.log(`Picking preview template among ${templates.length} options`);
+      const result = await b.PickPreviewTemplate(hook, templates);
+      this.logger.log(`Selected preview template: ${result.template_id}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to pick preview template: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Vision-assisted repair of a scene's HTML: Opus sees a screenshot of the
+   * current render + the HTML, and returns corrected HTML (layout fixes only).
+   */
+  async repairSceneHTML(input: {
+    html: string;
+    screenshotBase64: string;
+    mainText: string;
+    subText?: string | null;
+    sceneNumber: number;
+    totalScenes: number;
+  }): Promise<string> {
+    try {
+      this.logger.log(`Repairing scene ${input.sceneNumber}/${input.totalScenes} HTML with Opus (vision)`);
+      const screenshot = Image.fromBase64('image/png', input.screenshotBase64);
+      const result = await b.RepairSceneHTML(
+        input.html,
+        screenshot,
+        input.mainText,
+        input.subText ?? null,
+        input.sceneNumber,
+        input.totalScenes,
+      );
+      this.logger.log(`Scene ${input.sceneNumber} repaired (${result.length} chars)`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to repair scene HTML: ${error.message}`);
+      throw error;
+    }
   }
 
   /**

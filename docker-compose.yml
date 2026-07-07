@@ -48,6 +48,13 @@ services:
       PORT: 3001
       DATABASE_URL: postgresql://postgres:postgres@db:5432/clipcraft
       CORS_ORIGIN: "http://localhost,http://localhost:3000,http://localhost:80"
+      PREVIEW_OUTPUT_DIR: /app/output
+    volumes:
+      # Rendered preview PNGs persist in a named volume (host bind mounts don't work
+      # for the external-SSD repo path under Docker Desktop). Covers are served + saved
+      # to Photos via the in-app download; grab the raw files with:
+      #   docker cp clipcraft_api:/app/output ./output
+      - preview_output:/app/output
     ports:
       - "3001:3001"
     networks:
@@ -76,6 +83,7 @@ services:
 
 volumes:
   postgres_data:
+  preview_output:
 
 networks:
   clipcraft_network:

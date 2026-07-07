@@ -45,7 +45,17 @@ export interface Project {
   script: Script;
   hasAnimations: boolean;
   animations: Animation[];
+  preview?: Preview | null;
   createdAt: Date;
   updatedAt: Date;
   thumbnail?: string;
+}
+
+// LLM-picked cover preview (Instagram + TikTok)
+export interface Preview {
+  templateId: string;
+  title?: string | null;
+  parte?: number | null;
+  hasInstagram: boolean;
+  hasTiktok: boolean;
 }

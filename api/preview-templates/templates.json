@@ -1,0 +1,12 @@
+[
+  { "id": "breaking_news", "name": "Breaking News", "description": "Urgent news / announcement style, red accent, one big headline. Best for surprising facts or 'did you know' hooks.", "fields": [{ "key": "title", "type": "text", "llm": true, "label": "Headline" }] },
+  { "id": "ai_models", "name": "AI / Tech", "description": "Minimal tech look with a vector-space graph and a short uppercase label. Best for AI / ML / tech concept explainers.", "fields": [{ "key": "title", "type": "text", "llm": true, "label": "Label" }] },
+  { "id": "progetto", "name": "Prediction / Question", "description": "Bold question headline (e.g. 'Chi vince il mondiale?'). Best for prediction, versus or open-question videos.", "fields": [{ "key": "title", "type": "text", "llm": true, "label": "Question" }] },
+  { "id": "se_lo_capisce_la_nonna", "name": "Se lo capisce Mia Nonna", "description": "Fixed series brand — simple explainer 'if grandma gets it, you do too'. Use for the recurring explainer series.", "fields": [{ "key": "parte", "type": "number", "llm": false, "label": "Parte" }] },
+  { "id": "io_non_sono_benestante", "name": "Io non sono benestante", "description": "Fixed series brand — finance / markets ticker aesthetic. Use for the recurring finance series.", "fields": [{ "key": "parte", "type": "number", "llm": false, "label": "PT" }] },
+  { "id": "nba", "name": "NBA Prediction", "description": "Fixed series brand — sports / NBA playoff prediction. Use for the recurring sports series.", "fields": [{ "key": "parte", "type": "number", "llm": false, "label": "Parte" }] },
+  { "id": "quanto_ci_scommetti", "name": "Quanto ci scommetti?", "description": "Fixed series brand — 'how much do you bet?' prediction / betting series.", "fields": [{ "key": "parte", "type": "number", "llm": false, "label": "Parte" }] },
+  { "id": "italia", "name": "ITAL-IA", "description": "Fixed brand — Italy regions & AI ('ITAL-IA') with category tags. Use for the recurring Italy / AI series.", "fields": [{ "key": "parte", "type": "number", "llm": false, "label": "Parte" }] },
+  { "id": "vulcanica", "name": "Video Vulcanico", "description": "Fixed brand cover — bold volcanic branding, no editable text.", "fields": [] },
+  { "id": "spagna", "name": "Dove Mangio Oggi", "description": "Fixed brand cover — Spain food ('dove mangio oggi?'), no editable text.", "fields": [] }
+]

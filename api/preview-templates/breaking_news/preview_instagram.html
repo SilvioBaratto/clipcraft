@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1920">
+    <title>Breaking News - Preview Instagram</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap');
+
+        /* =========================================================
+           TEMA — cambia qui i colori una volta per tutte
+           ========================================================= */
+        :root {
+            --paper:  #f0ece4;   /* sfondo */
+            --ink:    #1a1a1a;   /* testo/nero */
+            --accent: #CD212A;   /* rosso "breaking" (cambia per altro mood) */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            width: 1080px;
+            height: 1920px;
+            overflow: hidden;
+            font-family: 'Space Grotesk', -apple-system, sans-serif;
+            background: var(--paper);
+            position: relative;
+        }
+
+        /* grain texture */
+        .grain {
+            position: absolute;
+            width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.035;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* accent vertical stripe - left edge */
+        .accent-stripe {
+            position: absolute;
+            left: 0; top: 0;
+            width: 24px; height: 100%;
+            background: var(--accent);
+            z-index: 10;
+        }
+
+        /* ---- geometric decorations (shared brutalist language) ---- */
+        .geo-circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 5px solid var(--ink);
+            opacity: 0.12;
+            z-index: 5;
+        }
+        .geo-circle-1 { width: 320px; height: 320px; top: -70px; right: -70px; }
+        .geo-circle-2 { width: 220px; height: 220px; bottom: 520px; left: -60px; }
+
+        .dot-grid {
+            position: absolute;
+            top: 360px; right: 60px;
+            width: 220px; height: 220px;
+            background-image: radial-gradient(circle, var(--ink) 2px, transparent 2px);
+            background-size: 20px 20px;
+            opacity: 0.08;
+            z-index: 5;
+        }
+
+        .cross {
+            position: absolute;
+            font-size: 40px; color: var(--ink);
+            opacity: 0.1; font-weight: 300; z-index: 5;
+        }
+        .cross-1 { top: 280px; left: 90px; }
+        .cross-2 { top: 1520px; right: 110px; }
+        .cross-3 { top: 780px; left: 70px; }
+
+        /* corner marks */
+        .corner-mark { position: absolute; width: 40px; height: 40px; z-index: 20; }
+        .corner-mark::before, .corner-mark::after {
+            content: ''; position: absolute; background: var(--ink); opacity: 0.15;
+        }
+        .corner-tl::before { width: 40px; height: 3px; top: 0; left: 0; }
+        .corner-tl::after  { width: 3px; height: 40px; top: 0; left: 0; }
+        .corner-tl { top: 50px; left: 50px; }
+        .corner-tr::before { width: 40px; height: 3px; top: 0; right: 0; }
+        .corner-tr::after  { width: 3px; height: 40px; top: 0; right: 0; }
+        .corner-tr { top: 50px; right: 50px; }
+        .corner-br::before { width: 40px; height: 3px; bottom: 0; right: 0; }
+        .corner-br::after  { width: 3px; height: 40px; bottom: 0; right: 0; }
+        .corner-br { bottom: 50px; right: 50px; }
+
+        /* ---- top: breaking label + optional meta ---- */
+        .top-section {
+            position: absolute;
+            top: 110px; left: 70px; right: 70px;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .breaking-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 16px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            padding: 16px 30px;
+            box-shadow: 6px 6px 0 var(--ink);
+        }
+        .live-dot {
+            width: 18px; height: 18px;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        .meta-label {
+            font-size: 28px;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--ink);
+            opacity: 0.55;
+        }
+
+        /* ---- center: headline (auto-fit) ---- */
+        .headline-box {
+            position: absolute;
+            top: 340px; bottom: 560px;
+            left: 70px; right: 70px;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .kicker {
+            display: inline-block;
+            align-self: flex-start;
+            background: var(--ink);
+            color: var(--paper);
+            font-size: 28px;
+            font-weight: 500;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            padding: 10px 22px;
+            margin-bottom: 40px;
+        }
+
+        .headline {
+            font-size: 130px;      /* punto di partenza; il JS lo riduce se serve */
+            font-weight: 700;
+            color: var(--ink);
+            line-height: 1.03;
+            letter-spacing: -3px;
+        }
+        .headline .hl { color: var(--accent); }
+
+        /* ---- bottom-right: handle (bottom-left = safe zone logo) ---- */
+        .handle {
+            position: absolute;
+            bottom: 120px; right: 70px;
+            z-index: 50;
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--ink);
+            text-align: right;
+        }
+        .handle .sub {
+            display: block;
+            font-size: 26px;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0.5;
+            margin-top: 6px;
+        }
+
+        /* profile safe zone bottom-left — 256x256 @ margin 30 (= add_rounded_logo in render_to_png.py) */
+        .profile-zone {
+            position: absolute;
+            bottom: 30px; left: 30px;
+            width: 256px; height: 256px;
+        }
+    </style>
+</head>
+<body>
+    <div class="grain"></div>
+    <div class="accent-stripe"></div>
+
+    <!-- decorazioni -->
+    <div class="corner-mark corner-tl"></div>
+    <div class="corner-mark corner-tr"></div>
+    <div class="corner-mark corner-br"></div>
+    <div class="geo-circle geo-circle-1"></div>
+    <div class="geo-circle geo-circle-2"></div>
+    <div class="dot-grid"></div>
+    <div class="cross cross-1">+</div>
+    <div class="cross cross-2">+</div>
+    <div class="cross cross-3">+</div>
+
+    <!-- ==========================================================
+         MODIFICA QUI — cambia solo il testo, il resto si adatta
+         · .breaking-label  → etichetta (ULTIM'ORA / NOVITÀ / FATTO)
+         · .meta-label      → data o rubrica (opzionale, puoi svuotarla)
+         · .kicker          → categoria (TECH / AI / MONDO...)
+         · .headline        → titolo. Avvolgi UNA parola in <span class="hl">
+         · .handle          → il tuo @
+         Il titolo si ridimensiona da solo per stare sempre dentro.
+         ========================================================== -->
+
+    <div class="top-section">
+        <div class="breaking-label"><span class="live-dot"></span>Ultim'ora</div>
+        <div class="meta-label">Tech</div>
+    </div>
+
+    <div class="headline-box">
+        <div class="kicker">Il fatto</div>
+        <div class="headline" id="headline">{{TITLE}}</div>
+    </div>
+
+    <div class="handle">
+        @neuroespresso
+        <span class="sub">La notizia spiegata</span>
+    </div>
+
+    <div class="profile-zone"></div>
+
+    <!-- auto-fit: riduce il titolo finché entra nel box -->
+    <script>
+        (function () {
+            var box = document.querySelector('.headline-box');
+            var h = document.getElementById('headline');
+            var kicker = document.querySelector('.kicker');
+            var min = 40;
+            function avail() {
+                return box.clientHeight - (kicker ? kicker.offsetHeight + 40 : 0);
+            }
+            var size = parseInt(getComputedStyle(h).fontSize, 10);
+            while (h.scrollHeight > avail() && size > min) {
+                size -= 2;
+                h.style.fontSize = size + 'px';
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1920">
+    <title>Io non sono benestante - Parte 1 (Instagram)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            width: 1080px;
+            height: 1920px;
+            overflow: hidden;
+            font-family: 'Space Mono', monospace;
+            background: #0b0e14;
+            position: relative;
+        }
+
+        /* Scanlines */
+        .scanlines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,100,0.015) 2px, rgba(0,255,100,0.015) 4px);
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Grid */
+        .grid-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0,255,100,0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,100,0.035) 1px, transparent 1px);
+            background-size: 54px 54px;
+        }
+
+        /* Currency watermarks */
+        .currency-watermark {
+            position: absolute;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            color: rgba(255,255,255,0.02);
+            z-index: 1;
+            line-height: 1;
+        }
+        .cw-1 { font-size: 750px; top: -100px; right: -120px; }
+        .cw-2 { font-size: 550px; bottom: 80px; left: -90px; }
+
+        /* Chart */
+        .chart-svg {
+            position: absolute;
+            bottom: 44px;
+            left: 0;
+            width: 100%;
+            height: 48%;
+            z-index: 2;
+        }
+
+        .loss-zone {
+            position: absolute;
+            bottom: 44px;
+            left: 0;
+            width: 35%;
+            height: 24%;
+            background: linear-gradient(0deg, rgba(255,23,68,0.14) 0%, transparent 100%);
+            z-index: 1;
+        }
+
+        .gain-zone {
+            position: absolute;
+            bottom: 44px;
+            right: 0;
+            width: 65%;
+            height: 40%;
+            background: linear-gradient(0deg, rgba(0,255,100,0.07) 0%, transparent 100%);
+            z-index: 1;
+        }
+
+        /* === CENTRAL CONTENT === */
+        .center-block {
+            position: absolute;
+            top: 46%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 50;
+            text-align: center;
+            width: 90%;
+        }
+
+        .title-line-1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 50px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.35);
+            text-transform: uppercase;
+            letter-spacing: 16px;
+            margin-bottom: 10px;
+        }
+
+        .title-line-2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 170px;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: -6px;
+            line-height: 0.88;
+            text-shadow: 0 0 80px rgba(0,255,100,0.3);
+        }
+
+        .title-line-3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 170px;
+            font-weight: 700;
+            color: #00ff64;
+            text-transform: uppercase;
+            letter-spacing: -6px;
+            line-height: 0.88;
+            text-shadow: 0 0 120px rgba(0,255,100,0.5);
+        }
+
+        .title-strike { position: relative; }
+        .title-strike::after {
+            content: '';
+            position: absolute;
+            left: -4%;
+            right: -4%;
+            top: 52%;
+            height: 11px;
+            background: #ff1744;
+            transform: rotate(-1deg);
+        }
+
+        /* Divider */
+        .divider {
+            width: 140px;
+            height: 2px;
+            background: rgba(255,215,64,0.4);
+            margin: 44px auto 34px;
+        }
+
+        /* Part number */
+        .part-number {
+            font-family: 'Space Mono', monospace;
+            font-size: 64px;
+            font-weight: 700;
+            color: #ffd740;
+            letter-spacing: 10px;
+            text-transform: uppercase;
+        }
+        .part-number span {
+            color: #fff;
+        }
+
+        /* Ticker tape */
+        .ticker {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 44px;
+            background: #ff1744;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+        .ticker-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            padding-left: 24px;
+        }
+        .ticker-sep { color: rgba(255,255,255,0.4); margin: 0 18px; }
+
+        /* Floating tickers */
+        .fin-data {
+            position: absolute;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            z-index: 15;
+        }
+        .fin-1 { top: 4%; left: 5%; color: rgba(0,255,100,0.22); }
+        .fin-2 { top: 4%; right: 5%; color: rgba(255,23,68,0.22); }
+        .fin-3 { top: 7.5%; left: 30%; color: rgba(0,255,100,0.16); }
+        .fin-4 { top: 7.5%; right: 16%; color: rgba(255,215,64,0.18); }
+        .fin-5 { top: 11%; left: 8%; color: rgba(255,23,68,0.18); }
+        .fin-6 { top: 11%; right: 8%; color: rgba(0,255,100,0.18); }
+        .fin-7 { top: 14.5%; left: 22%; color: rgba(255,255,255,0.1); }
+        .fin-8 { top: 14.5%; right: 14%; color: rgba(0,255,100,0.14); }
+
+        /* Bid/Ask */
+        .bid-ask {
+            position: absolute;
+            right: 28px;
+            top: 44%;
+            z-index: 25;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            line-height: 1.7;
+            background: rgba(11,14,20,0.85);
+            border-left: 2px solid #00ff64;
+            padding: 7px 12px;
+        }
+        .bid-ask .bid { color: #00ff64; }
+        .bid-ask .ask { color: #ff1744; }
+        .bid-ask .spread { color: rgba(255,255,255,0.3); }
+
+        /* Stamps */
+        .stamp {
+            position: absolute;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: 4px solid;
+            padding: 8px 22px;
+            z-index: 12;
+        }
+        .stamp-bull {
+            top: 18%;
+            right: 5%;
+            font-size: 26px;
+            color: rgba(0,255,100,0.18);
+            border-color: rgba(0,255,100,0.12);
+            transform: rotate(12deg);
+        }
+        .stamp-bear {
+            bottom: 26%;
+            left: 4%;
+            font-size: 18px;
+            color: rgba(255,23,68,0.15);
+            border-color: rgba(255,23,68,0.1);
+            transform: rotate(-8deg);
+        }
+
+        /* Labels */
+        .candle-label {
+            position: absolute;
+            font-family: 'Space Mono', monospace;
+            font-size: 9px;
+            color: rgba(255,255,255,0.07);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            z-index: 6;
+        }
+        .cl-1 { bottom: 40%; left: 5%; }
+        .cl-2 { bottom: 36%; right: 5%; }
+        .cl-3 { top: 62%; left: 40%; }
+
+        /* Vertical text */
+        .vert-text {
+            position: absolute;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            writing-mode: vertical-rl;
+            color: rgba(255,255,255,0.08);
+            z-index: 10;
+        }
+        .vert-left { left: 12px; top: 50%; transform: translateY(-50%); }
+        .vert-right { right: 12px; top: 50%; transform: translateY(-50%) rotate(180deg); }
+
+        /* Corner markers */
+        .corner-mark { position: absolute; width: 38px; height: 38px; z-index: 30; }
+        .corner-mark::before, .corner-mark::after { content: ''; position: absolute; background: rgba(0,255,100,0.25); }
+        .cm-tl { top: 12px; left: 12px; }
+        .cm-tl::before { width: 38px; height: 2px; top: 0; left: 0; }
+        .cm-tl::after { width: 2px; height: 38px; top: 0; left: 0; }
+        .cm-tr { top: 12px; right: 12px; }
+        .cm-tr::before { width: 38px; height: 2px; top: 0; right: 0; }
+        .cm-tr::after { width: 2px; height: 38px; top: 0; right: 0; }
+        .cm-bl { bottom: 54px; left: 12px; }
+        .cm-bl::before { width: 38px; height: 2px; bottom: 0; left: 0; }
+        .cm-bl::after { width: 2px; height: 38px; bottom: 0; left: 0; }
+        .cm-br { bottom: 54px; right: 12px; }
+        .cm-br::before { width: 38px; height: 2px; bottom: 0; right: 0; }
+        .cm-br::after { width: 2px; height: 38px; bottom: 0; right: 0; }
+
+        /* Price lines */
+        .price-line {
+            position: absolute; left: 0; width: 100%; height: 1px; z-index: 3;
+            display: flex; align-items: center;
+        }
+        .price-line::before { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.04); }
+        .price-label {
+            font-family: 'Space Mono', monospace; font-size: 10px;
+            color: rgba(255,255,255,0.1); padding: 0 10px; white-space: nowrap;
+        }
+        .pl-1 { top: 30%; }
+        .pl-2 { top: 48%; }
+        .pl-3 { top: 64%; }
+        .pl-4 { top: 80%; }
+
+        /* Crosshair */
+        .crosshair-v {
+            position: absolute; left: 74%; top: 0; width: 1px; height: 100%;
+            background: rgba(0,255,100,0.1); z-index: 4;
+        }
+        .crosshair-h {
+            position: absolute; top: 40%; left: 0; width: 100%; height: 1px;
+            background: rgba(0,255,100,0.1); z-index: 4;
+        }
+        .crosshair-dot {
+            position: absolute; left: calc(74% - 6px); top: calc(40% - 6px);
+            width: 12px; height: 12px; border-radius: 50%;
+            background: #00ff64; box-shadow: 0 0 20px rgba(0,255,100,0.5); z-index: 5;
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="grid-bg"></div>
+    <div class="currency-watermark cw-1">&euro;</div>
+    <div class="currency-watermark cw-2">$</div>
+
+    <!-- Chart -->
+    <svg class="chart-svg" viewBox="0 0 1080 960" preserveAspectRatio="none">
+        <defs>
+            <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#00ff64" stop-opacity="0.08"/>
+                <stop offset="100%" stop-color="#00ff64" stop-opacity="0"/>
+            </linearGradient>
+        </defs>
+        <path d="M0,760 L60,740 120,780 180,720 240,750 300,790 360,760 420,710 480,680 540,700 600,650 660,610 720,570 780,520 840,460 900,390 960,340 1020,280 1080,220 L1080,960 L0,960 Z" fill="url(#chartFill)"/>
+        <path d="M0,760 L60,740 120,780 180,720 240,750 300,790 360,760 420,710 480,680 540,700 600,650 660,610 720,570 780,520 840,460 900,390 960,340 1020,280 1080,220" fill="none" stroke="#00ff64" stroke-width="3" stroke-opacity="0.5"/>
+        <path d="M0,760 L60,740 120,780 180,720 240,750 300,790" fill="none" stroke="#ff1744" stroke-width="3" stroke-opacity="0.4"/>
+        <!-- Candlesticks -->
+        <line x1="90" y1="720" x2="90" y2="800" stroke="#ff1744" stroke-width="1.5" stroke-opacity="0.25"/>
+        <rect x="82" y="740" width="16" height="40" fill="#ff1744" fill-opacity="0.2"/>
+        <line x1="270" y1="730" x2="270" y2="810" stroke="#ff1744" stroke-width="1.5" stroke-opacity="0.25"/>
+        <rect x="262" y="750" width="16" height="45" fill="#ff1744" fill-opacity="0.2"/>
+        <line x1="450" y1="680" x2="450" y2="750" stroke="#00ff64" stroke-width="1.5" stroke-opacity="0.25"/>
+        <rect x="442" y="695" width="16" height="35" fill="#00ff64" fill-opacity="0.15"/>
+        <line x1="630" y1="580" x2="630" y2="650" stroke="#00ff64" stroke-width="1.5" stroke-opacity="0.25"/>
+        <rect x="622" y="595" width="16" height="35" fill="#00ff64" fill-opacity="0.15"/>
+        <line x1="810" y1="430" x2="810" y2="510" stroke="#00ff64" stroke-width="1.5" stroke-opacity="0.25"/>
+        <rect x="802" y="445" width="16" height="40" fill="#00ff64" fill-opacity="0.15"/>
+        <line x1="930" y1="350" x2="930" y2="420" stroke="#00ff64" stroke-width="1.5" stroke-opacity="0.25"/>
+        <rect x="922" y="360" width="16" height="35" fill="#00ff64" fill-opacity="0.15"/>
+        <!-- Volume bars -->
+        <rect x="50" y="900" width="30" height="50" fill="#ff1744" fill-opacity="0.12"/>
+        <rect x="110" y="890" width="30" height="60" fill="#ff1744" fill-opacity="0.1"/>
+        <rect x="170" y="905" width="30" height="45" fill="#00ff64" fill-opacity="0.1"/>
+        <rect x="230" y="880" width="30" height="70" fill="#ff1744" fill-opacity="0.12"/>
+        <rect x="290" y="895" width="30" height="55" fill="#ff1744" fill-opacity="0.1"/>
+        <rect x="350" y="910" width="30" height="40" fill="#00ff64" fill-opacity="0.08"/>
+        <rect x="410" y="885" width="30" height="65" fill="#00ff64" fill-opacity="0.12"/>
+        <rect x="470" y="900" width="30" height="50" fill="#ff1744" fill-opacity="0.1"/>
+        <rect x="530" y="870" width="30" height="80" fill="#00ff64" fill-opacity="0.12"/>
+        <rect x="590" y="885" width="30" height="65" fill="#00ff64" fill-opacity="0.1"/>
+        <rect x="650" y="860" width="30" height="90" fill="#00ff64" fill-opacity="0.15"/>
+        <rect x="710" y="875" width="30" height="75" fill="#00ff64" fill-opacity="0.12"/>
+        <rect x="770" y="845" width="30" height="105" fill="#00ff64" fill-opacity="0.18"/>
+        <rect x="830" y="865" width="30" height="85" fill="#00ff64" fill-opacity="0.12"/>
+        <rect x="890" y="835" width="30" height="115" fill="#00ff64" fill-opacity="0.2"/>
+        <rect x="950" y="850" width="30" height="100" fill="#00ff64" fill-opacity="0.15"/>
+        <rect x="1010" y="820" width="30" height="130" fill="#00ff64" fill-opacity="0.22"/>
+        <!-- MA line -->
+        <path d="M0,780 Q180,770 360,740 Q540,700 720,600 Q900,440 1080,260" fill="none" stroke="#ffd740" stroke-width="1.5" stroke-opacity="0.12" stroke-dasharray="8,6"/>
+    </svg>
+
+    <div class="loss-zone"></div>
+    <div class="gain-zone"></div>
+
+    <!-- Financial tickers -->
+    <div class="fin-data fin-1">AAPL <span style="color:rgba(0,255,100,0.32)">+2.34%</span></div>
+    <div class="fin-data fin-2">TSLA <span style="color:rgba(255,23,68,0.32)">-4.12%</span></div>
+    <div class="fin-data fin-3">MSFT <span style="color:rgba(0,255,100,0.24)">+1.87%</span></div>
+    <div class="fin-data fin-4">EUR/USD <span style="color:rgba(255,215,64,0.26)">1.0842</span></div>
+    <div class="fin-data fin-5">BTC <span style="color:rgba(255,23,68,0.26)">-1.56%</span></div>
+    <div class="fin-data fin-6">S&P 500 <span style="color:rgba(0,255,100,0.26)">+0.89%</span></div>
+    <div class="fin-data fin-7">NVDA <span style="color:rgba(255,255,255,0.16)">+3.21%</span></div>
+    <div class="fin-data fin-8">GOLD <span style="color:rgba(0,255,100,0.2)">+0.34%</span></div>
+
+    <div class="bid-ask">
+        <div class="bid">BID 11,284.50</div>
+        <div class="ask">ASK 11,286.20</div>
+        <div class="spread">SPR 1.70</div>
+    </div>
+
+    <div class="stamp stamp-bull">BULL</div>
+    <div class="stamp stamp-bear">BEAR</div>
+    <div class="candle-label cl-1">VOL 2.4M</div>
+    <div class="candle-label cl-2">OHLC</div>
+    <div class="candle-label cl-3">MA(50)</div>
+
+    <div class="price-line pl-1"><span class="price-label">12,840.00</span></div>
+    <div class="price-line pl-2"><span class="price-label">9,120.50</span></div>
+    <div class="price-line pl-3"><span class="price-label">5,400.00</span></div>
+    <div class="price-line pl-4"><span class="price-label">1,680.75</span></div>
+
+    <div class="crosshair-v"></div>
+    <div class="crosshair-h"></div>
+    <div class="crosshair-dot"></div>
+
+    <div class="corner-mark cm-tl"></div>
+    <div class="corner-mark cm-tr"></div>
+    <div class="corner-mark cm-bl"></div>
+    <div class="corner-mark cm-br"></div>
+
+    <div class="vert-text vert-left">sharpe ratio // max drawdown // var 95%</div>
+    <div class="vert-text vert-right">mean-variance // efficient frontier</div>
+
+    <!-- === CENTERED CONTENT === -->
+    <div class="center-block">
+        <div class="title-line-1">io non sono</div>
+        <div class="title-line-2 title-strike">Bene</div>
+        <div class="title-line-3">stante</div>
+        <div class="divider"></div>
+        <div class="part-number">PT.<span>{{PARTE}}</span></div>
+    </div>
+
+    <!-- Ticker -->
+    <div class="ticker">
+        <div class="ticker-text">
+            FTSE MIB +0.42%
+            <span class="ticker-sep">//</span>
+            DAX -0.18%
+            <span class="ticker-sep">//</span>
+            S&P 500 +0.89%
+            <span class="ticker-sep">//</span>
+            BTC -1.56%
+            <span class="ticker-sep">//</span>
+            EUR/USD 1.0842
+            <span class="ticker-sep">//</span>
+            GOLD +0.34%
+        </div>
+    </div>
+</body>
+</html>

@@ -26,6 +26,23 @@ export interface AnimationResponse {
   updatedAt: string;
 }
 
+export interface PreviewResponse {
+  templateId: string;
+  title?: string | null;
+  parte?: number | null;
+  hasInstagram: boolean;
+  hasTiktok: boolean;
+}
+
+export interface PreviewTemplate {
+  id: string;
+  name: string;
+  description: string;
+  fields: { key: 'title' | 'parte'; type: 'text' | 'number'; llm: boolean; label: string }[];
+}
+
+export type PreviewPlatform = 'instagram' | 'tiktok';
+
 export interface ProjectResponse {
   id: string;
   name: string;
@@ -36,6 +53,7 @@ export interface ProjectResponse {
   hasAnimations: boolean;
   sourceScript: string;
   animations: AnimationResponse[];
+  preview?: PreviewResponse | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -111,5 +129,47 @@ export class ApiService {
     return this.http.get(`${this.baseUrl}/projects/${projectId}/download`, {
       responseType: 'blob',
     });
+  }
+
+  // Scene repair (vision + Opus) — returns fixed HTML without saving
+  repairScene(
+    sceneId: string,
+  ): Observable<{ id: string; changed: boolean; summary: string; repairedHtml: string }> {
+    return this.http.post<{ id: string; changed: boolean; summary: string; repairedHtml: string }>(
+      `${this.baseUrl}/content/animation/scenes/${sceneId}/repair`,
+      {},
+    );
+  }
+
+  saveSceneHtml(sceneId: string, generatedHtml: string): Observable<{ id: string; generatedHtml: string }> {
+    return this.http.patch<{ id: string; generatedHtml: string }>(
+      `${this.baseUrl}/content/animation/scenes/${sceneId}/html`,
+      { generatedHtml },
+    );
+  }
+
+  // Preview covers
+  generateProjectPreviews(projectId: string): Observable<PreviewResponse> {
+    return this.http.post<PreviewResponse>(`${this.baseUrl}/projects/${projectId}/generate/previews`, {});
+  }
+
+  updateProjectPreview(
+    projectId: string,
+    body: { templateId?: string; title?: string | null; parte?: number | null },
+  ): Observable<PreviewResponse> {
+    return this.http.patch<PreviewResponse>(`${this.baseUrl}/projects/${projectId}/preview`, body);
+  }
+
+  getPreviewTemplates(): Observable<PreviewTemplate[]> {
+    return this.http.get<PreviewTemplate[]>(`${this.baseUrl}/content/preview/templates`);
+  }
+
+  /** Public URL of a rendered cover (append a cache-bust after re-render). */
+  previewImageUrl(projectId: string, platform: PreviewPlatform): string {
+    return `${this.baseUrl}/projects/${projectId}/preview/${platform}`;
+  }
+
+  downloadPreview(projectId: string, platform: PreviewPlatform): Observable<Blob> {
+    return this.http.get(this.previewImageUrl(projectId, platform), { responseType: 'blob' });
   }
 }

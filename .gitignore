@@ -28,6 +28,9 @@ yarn-error.log*
 dist/
 tmp/
 
+# Rendered preview PNGs (Docker output volume)
+output/
+
 # Test coverage
 coverage/
 

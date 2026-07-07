@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Project, Animation, AnimationScene } from '@prisma/client';
+import { Project, Animation, AnimationScene, Preview } from '@prisma/client';
 import archiver = require('archiver');
 import type { Response } from 'express';
 import { BamlService } from '../../shared/baml/baml.service';
@@ -11,12 +11,22 @@ import {
   ProjectResponseDto,
   AnimationResponseDto,
   AnimationSceneResponseDto,
+  PreviewResponseDto,
 } from './dto/extract-metadata.dto';
 
 // Types for Prisma includes
 type AnimationWithScenes = Animation & { scenes: AnimationScene[] };
 type ProjectWithRelations = Project & {
   animations: AnimationWithScenes[];
+  preview: Preview | null;
+};
+
+const PROJECT_INCLUDE = {
+  animations: {
+    include: { scenes: { orderBy: { sceneNumber: 'asc' as const } } },
+    orderBy: { createdAt: 'desc' as const },
+  },
+  preview: true,
 };
 
 @Injectable()
@@ -53,11 +63,7 @@ export class ProjectsService {
         sourceScript: dto.script,
         userId: dto.userId || null,
       },
-      include: {
-        animations: {
-          include: { scenes: { orderBy: { sceneNumber: 'asc' } } },
-        },
-      },
+      include: PROJECT_INCLUDE,
     });
 
     this.logger.log(`Project created with ID: ${project.id}`);
@@ -68,12 +74,7 @@ export class ProjectsService {
   async findAll(): Promise<ProjectResponseDto[]> {
     const projects = await this.prisma.project.findMany({
       orderBy: { createdAt: 'desc' },
-      include: {
-        animations: {
-          include: { scenes: { orderBy: { sceneNumber: 'asc' } } },
-          orderBy: { createdAt: 'desc' },
-        },
-      },
+      include: PROJECT_INCLUDE,
     });
 
     return projects.map((p) => this.toResponseDto(p as ProjectWithRelations));
@@ -82,12 +83,7 @@ export class ProjectsService {
   async findById(id: string): Promise<ProjectResponseDto> {
     const project = await this.prisma.project.findUnique({
       where: { id },
-      include: {
-        animations: {
-          include: { scenes: { orderBy: { sceneNumber: 'asc' } } },
-          orderBy: { createdAt: 'desc' },
-        },
-      },
+      include: PROJECT_INCLUDE,
     });
 
     if (!project) {
@@ -119,12 +115,7 @@ export class ProjectsService {
   async streamProjectZip(id: string, res: Response): Promise<void> {
     const project = await this.prisma.project.findUnique({
       where: { id },
-      include: {
-        animations: {
-          include: { scenes: { orderBy: { sceneNumber: 'asc' } } },
-          orderBy: { createdAt: 'desc' },
-        },
-      },
+      include: PROJECT_INCLUDE,
     });
 
     if (!project) {
@@ -188,19 +179,11 @@ export class ProjectsService {
     this.logger.log(`ZIP archive finalized for project ${id}`);
   }
 
-  async updateStatus(
-    id: string,
-    status: { hasAnimations?: boolean },
-  ): Promise<ProjectResponseDto> {
+  async updateStatus(id: string, status: { hasAnimations?: boolean }): Promise<ProjectResponseDto> {
     const project = await this.prisma.project.update({
       where: { id },
       data: status,
-      include: {
-        animations: {
-          include: { scenes: { orderBy: { sceneNumber: 'asc' } } },
-          orderBy: { createdAt: 'desc' },
-        },
-      },
+      include: PROJECT_INCLUDE,
     });
 
     return this.toResponseDto(project as ProjectWithRelations);
@@ -213,12 +196,7 @@ export class ProjectsService {
     const project = await this.prisma.project.update({
       where: { id },
       data: { sourceScript, ...(hook !== undefined && { hook }) },
-      include: {
-        animations: {
-          include: { scenes: { orderBy: { sceneNumber: 'asc' } } },
-          orderBy: { createdAt: 'desc' },
-        },
-      },
+      include: PROJECT_INCLUDE,
     });
 
     return this.toResponseDto(project as ProjectWithRelations);
@@ -259,8 +237,19 @@ export class ProjectsService {
       hasAnimations: project.hasAnimations,
       sourceScript: project.sourceScript,
       animations: project.animations.map((a) => this.toAnimationDto(a)),
+      preview: project.preview ? this.toPreviewDto(project.preview) : null,
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
+    };
+  }
+
+  private toPreviewDto(preview: Preview): PreviewResponseDto {
+    return {
+      templateId: preview.templateId,
+      title: preview.title,
+      parte: preview.parte,
+      hasInstagram: !!preview.instagramPath,
+      hasTiktok: !!preview.tiktokPath,
     };
   }
 

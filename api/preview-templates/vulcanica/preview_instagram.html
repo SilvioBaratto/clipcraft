@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1920">
+    <title>Resta Vulcanica - Preview Instagram</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            width: 1080px;
+            height: 1920px;
+            overflow: hidden;
+            background: #E86428;
+            position: relative;
+        }
+
+        /* Subtle grain texture */
+        .grain {
+            position: absolute;
+            width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Cloud shape — overlapping circles form organic smoke */
+        .cloud {
+            position: absolute;
+            background: #F2D9B0;
+            border-radius: 50%;
+            z-index: 20;
+        }
+
+        /* Main body */
+        .c1  { width: 640px; height: 560px; top: 200px; left: 220px; }
+        /* Top bumps */
+        .c2  { width: 420px; height: 420px; top: 30px;  left: 330px; }
+        .c3  { width: 320px; height: 370px; top: 60px;  left: 95px; }
+        .c4  { width: 340px; height: 380px; top: 55px;  left: 645px; }
+        /* Side bumps */
+        .c5  { width: 285px; height: 330px; top: 360px; left: 40px; }
+        .c6  { width: 305px; height: 340px; top: 350px; left: 735px; }
+        /* Lower bumps */
+        .c7  { width: 270px; height: 290px; top: 580px; left: 190px; }
+        .c8  { width: 280px; height: 290px; top: 565px; left: 620px; }
+        /* Stem connecting to lava */
+        .c9  { width: 240px; height: 270px; top: 730px; left: 420px; }
+        .c10 { width: 185px; height: 230px; top: 890px; left: 448px; }
+        .c11 { width: 150px; height: 200px; top: 1030px; left: 465px; }
+
+        /* Title text */
+        .title {
+            position: absolute;
+            top: 140px;
+            left: 0;
+            right: 0;
+            height: 620px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+            font-family: 'Luckiest Guy', 'Impact', 'Arial Black', sans-serif;
+            font-size: 120px;
+            color: #1B3868;
+            text-align: center;
+            line-height: 1.1;
+            letter-spacing: 4px;
+        }
+
+        /* Lava blobs */
+        .lava {
+            position: absolute;
+            background: #CC2C14;
+            z-index: 15;
+        }
+
+        .l1 { width: 100px; height: 165px; top: 1110px; left: 490px; border-radius: 42% 58% 52% 48%; }
+        .l2 { width: 72px;  height: 125px; top: 1080px; left: 425px; border-radius: 55% 40% 50% 48%; }
+        .l3 { width: 78px;  height: 140px; top: 1095px; left: 575px; border-radius: 40% 58% 45% 52%; }
+        .l4 { width: 52px;  height: 85px;  top: 1060px; left: 518px; border-radius: 50% 46% 54% 50%; }
+        .l5 { width: 62px;  height: 105px; top: 1140px; left: 540px; border-radius: 48% 52% 50% 44%; }
+
+        /* Volcano */
+        .volcano {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 790px;
+            background: #8E3218;
+            clip-path: polygon(
+                0% 100%,
+                26% 10%,
+                39% 0%,
+                43% 6%,
+                57% 6%,
+                61% 0%,
+                74% 10%,
+                100% 100%
+            );
+            z-index: 10;
+        }
+
+        /* Credit text — outside safe zone */
+        .credit {
+            position: absolute;
+            bottom: 50px;
+            left: 350px;
+            right: 60px;
+            font-family: 'Arial', sans-serif;
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.45);
+            text-align: center;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body>
+    <div class="grain"></div>
+
+    <!-- Cloud shape -->
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div class="cloud c3"></div>
+    <div class="cloud c4"></div>
+    <div class="cloud c5"></div>
+    <div class="cloud c6"></div>
+    <div class="cloud c7"></div>
+    <div class="cloud c8"></div>
+    <div class="cloud c9"></div>
+    <div class="cloud c10"></div>
+    <div class="cloud c11"></div>
+
+    <!-- Title -->
+    <div class="title">VIDEO<br>VULCANICO</div>
+
+    <!-- Lava eruption -->
+    <div class="lava l1"></div>
+    <div class="lava l2"></div>
+    <div class="lava l3"></div>
+    <div class="lava l4"></div>
+    <div class="lava l5"></div>
+
+    <!-- Volcano -->
+    <div class="volcano"></div>
+
+    <!-- Credit -->
+    <div class="credit"></div>
+</body>
+</html>

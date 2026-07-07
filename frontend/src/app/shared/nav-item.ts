@@ -18,6 +18,4 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { name: 'Home', route: '/', icon: 'Home' },
   { name: 'Planner', route: '/planner', icon: 'Calendar' },
-  { name: 'Dashboard', route: '/dashboard', icon: 'LayoutDashboard' },
-  { name: 'Settings', route: '/settings', icon: 'Settings' },
 ];

@@ -1,11 +1,51 @@
-import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { BamlService } from '../../../shared/baml/baml.service';
 import { PrismaService } from '../../../shared/prisma/prisma.service';
+import { RenderingService } from '../../../shared/rendering/rendering.service';
 import type { AnimationSet } from '../../../../baml_client/types';
 import type { Animation as PrismaAnimation, AnimationScene } from '@prisma/client';
 
 export interface AnimationWithScenes extends PrismaAnimation {
   scenes: AnimationScene[];
+}
+
+/**
+ * Extract the HTML document from a model response: drop ``` fences and any
+ * prose the model added before <!DOCTYPE>/<html> or after </html>.
+ */
+function extractHtmlDocument(s: string): string {
+  let t = s
+    .replace(/^\s*```(?:html)?\s*\n?/i, '')
+    .replace(/\n?```\s*$/i, '')
+    .trim();
+
+  const startDoctype = t.search(/<!doctype html/i);
+  const start = startDoctype >= 0 ? startDoctype : t.search(/<html[\s>]/i);
+  if (start > 0) t = t.slice(start);
+
+  const end = t.toLowerCase().lastIndexOf('</html>');
+  if (end >= 0) t = t.slice(0, end + '</html>'.length);
+
+  return t.trim();
+}
+
+/** Parse the CHANGED/SUMMARY/---HTML--- envelope from the repair model. */
+function parseRepairOutput(raw: string): { changed: boolean; summary: string; html: string } {
+  const changedMatch = raw.match(/CHANGED:\s*(yes|no)/i);
+  const summaryMatch = raw.match(/SUMMARY:\s*(.+)/i);
+  const markerIdx = raw.indexOf('---HTML---');
+  const html = markerIdx >= 0 ? raw.slice(markerIdx + '---HTML---'.length) : raw;
+  return {
+    changed: changedMatch ? /yes/i.test(changedMatch[1]) : true,
+    summary: summaryMatch ? summaryMatch[1].trim() : '',
+    html,
+  };
 }
 
 @Injectable()
@@ -15,7 +55,54 @@ export class AnimationService {
   constructor(
     private readonly bamlService: BamlService,
     private readonly prisma: PrismaService,
+    private readonly renderingService: RenderingService,
   ) {}
+
+  /**
+   * Vision-repair a scene: render its current HTML, let Opus see the screenshot
+   * + HTML and return fixed HTML. Does NOT save — caller previews then confirms.
+   */
+  async repairScene(
+    sceneId: string,
+  ): Promise<{ id: string; changed: boolean; summary: string; repairedHtml: string }> {
+    const scene = await this.prisma.animationScene.findUnique({
+      where: { id: sceneId },
+      include: { animation: true },
+    });
+    if (!scene) throw new NotFoundException(`Scene ${sceneId} not found`);
+    if (!scene.generatedHtml) {
+      throw new BadRequestException(`Scene ${sceneId} has no generated HTML to repair`);
+    }
+
+    const png = await this.renderingService.renderHtmlToPng(scene.generatedHtml, 1920, 1080, true);
+    const raw = await this.bamlService.repairSceneHTML({
+      html: scene.generatedHtml,
+      screenshotBase64: png.toString('base64'),
+      mainText: scene.mainText,
+      subText: scene.subText,
+      sceneNumber: scene.sceneNumber,
+      totalScenes: scene.animation.totalScenes,
+    });
+
+    const parsed = parseRepairOutput(raw);
+    return {
+      id: sceneId,
+      changed: parsed.changed,
+      summary: parsed.summary,
+      repairedHtml: extractHtmlDocument(parsed.html),
+    };
+  }
+
+  /** Persist confirmed HTML for a scene (the "Keep" action). */
+  async updateSceneHtml(sceneId: string, generatedHtml: string): Promise<{ id: string; generatedHtml: string }> {
+    const existing = await this.prisma.animationScene.findUnique({ where: { id: sceneId } });
+    if (!existing) throw new NotFoundException(`Scene ${sceneId} not found`);
+    const scene = await this.prisma.animationScene.update({
+      where: { id: sceneId },
+      data: { generatedHtml: extractHtmlDocument(generatedHtml) },
+    });
+    return { id: scene.id, generatedHtml: scene.generatedHtml ?? '' };
+  }
 
   async generateAnimationSet(topic: string): Promise<AnimationSet> {
     try {

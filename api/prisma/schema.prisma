@@ -80,8 +80,30 @@ model Project {
 
   // Content relations (normalized)
   animations Animation[]
+  preview    Preview?
 
   @@index([userId])
+}
+
+// =============================================================================
+// PREVIEW (LLM-picked cover template + injected title, rendered per platform)
+// =============================================================================
+
+model Preview {
+  id         String  @id @default(cuid())
+  projectId  String  @unique
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  templateId String // key into api/preview-templates/<id>
+  title      String? // freeform headline (for freeform templates)
+  parte      Int? // episode number (for series templates)
+
+  // Rendered PNG paths inside the output volume (relative to PREVIEW_OUTPUT_DIR)
+  instagramPath String?
+  tiktokPath    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // =============================================================================

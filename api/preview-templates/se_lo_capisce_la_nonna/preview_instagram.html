@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1920">
+    <title>Se lo capisce mia nonna - Parte 2 (Instagram)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 1080px;
+            height: 1920px;
+            overflow: hidden;
+            font-family: 'Space Grotesk', -apple-system, sans-serif;
+            background: #0a0a0a;
+            position: relative;
+        }
+
+        /* Noise texture overlay */
+        .noise {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Bold diagonal stripe */
+        .diagonal-stripe {
+            position: absolute;
+            width: 200%;
+            height: 380px;
+            background: linear-gradient(90deg, #ff2d55 0%, #ff6b00 40%, #ffcc00 100%);
+            top: 50%;
+            left: -50%;
+            transform: rotate(-8deg) translateY(-50%);
+            box-shadow: 0 0 120px rgba(255, 45, 85, 0.5);
+        }
+
+        /* Secondary stripe */
+        .diagonal-stripe-2 {
+            position: absolute;
+            width: 200%;
+            height: 90px;
+            background: #fff;
+            top: 37%;
+            left: -50%;
+            transform: rotate(-8deg);
+        }
+
+        /* Accent stripe */
+        .diagonal-stripe-3 {
+            position: absolute;
+            width: 200%;
+            height: 25px;
+            background: #00d4ff;
+            top: 62%;
+            left: -50%;
+            transform: rotate(-8deg);
+        }
+
+        /* Geometric blocks */
+        .geo-block {
+            position: absolute;
+        }
+
+        .block-1 {
+            width: 130px;
+            height: 130px;
+            top: 6%;
+            right: 6%;
+            background: #00d4ff;
+            transform: rotate(12deg);
+            box-shadow: 8px 8px 0 #000;
+        }
+
+        .block-2 {
+            width: 90px;
+            height: 90px;
+            bottom: 26%;
+            left: 5%;
+            background: #ffcc00;
+            transform: rotate(-8deg);
+            box-shadow: 6px 6px 0 #000;
+        }
+
+        .block-3 {
+            width: 50px;
+            height: 180px;
+            top: 14%;
+            left: 4%;
+            background: #ff2d55;
+            transform: rotate(3deg);
+        }
+
+        .block-4 {
+            width: 70px;
+            height: 70px;
+            top: 75%;
+            right: 8%;
+            background: #fff;
+            transform: rotate(20deg);
+            box-shadow: 5px 5px 0 #ff2d55;
+        }
+
+        /* Circle accents */
+        .circle-accent {
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .circle-1 {
+            width: 200px;
+            height: 200px;
+            bottom: 30%;
+            right: 3%;
+            border: 10px solid #00d4ff;
+        }
+
+        .circle-2 {
+            width: 120px;
+            height: 120px;
+            top: 18%;
+            left: 22%;
+            border: 8px solid #ffcc00;
+        }
+
+        .circle-3 {
+            width: 60px;
+            height: 60px;
+            bottom: 15%;
+            left: 35%;
+            background: #ff2d55;
+        }
+
+        /* Main content container */
+        .content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 50;
+            width: 90%;
+        }
+
+        /* Title block - sticker style */
+        .title-block {
+            background: #000;
+            padding: 55px 45px;
+            display: inline-block;
+            transform: rotate(-2deg);
+            box-shadow: 14px 14px 0 #fff;
+            border: 4px solid #fff;
+        }
+
+        .line-1 {
+            display: block;
+            color: #fff;
+            font-size: 54px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 18px;
+            text-transform: uppercase;
+        }
+
+        .line-2 {
+            display: block;
+            font-size: 125px;
+            font-weight: 700;
+            letter-spacing: -6px;
+            color: #ffcc00;
+            text-transform: uppercase;
+            line-height: 0.85;
+        }
+
+        .line-3 {
+            display: block;
+            color: #fff;
+            font-size: 54px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-top: 18px;
+            text-transform: uppercase;
+        }
+
+        /* Part badge */
+        .part-badge {
+            position: absolute;
+            bottom: 17%;
+            left: 50%;
+            transform: translateX(-50%) rotate(3deg);
+            background: #ffcc00;
+            color: #000;
+            padding: 28px 65px;
+            font-size: 44px;
+            font-weight: 700;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            box-shadow: 10px 10px 0 #000;
+            border: 4px solid #000;
+            z-index: 60;
+        }
+
+        .part-number {
+            color: #ff2d55;
+            font-weight: 700;
+        }
+
+        /* Emoji stickers */
+        .emoji-sticker {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 6px 6px 0 #000;
+        }
+
+        .sticker-1 {
+            font-size: 100px;
+            width: 150px;
+            height: 150px;
+            background: #fff;
+            top: 4%;
+            left: 8%;
+            transform: rotate(-12deg);
+        }
+
+        .sticker-2 {
+            font-size: 70px;
+            width: 110px;
+            height: 110px;
+            background: #ffcc00;
+            top: 9%;
+            right: 30%;
+            transform: rotate(8deg);
+        }
+
+        .sticker-3 {
+            font-size: 90px;
+            width: 140px;
+            height: 140px;
+            background: #00d4ff;
+            bottom: 5%;
+            right: 8%;
+            transform: rotate(10deg);
+        }
+
+        .sticker-4 {
+            font-size: 60px;
+            width: 95px;
+            height: 95px;
+            background: #ff2d55;
+            bottom: 35%;
+            left: 3%;
+            transform: rotate(-5deg);
+        }
+
+        .sticker-5 {
+            font-size: 55px;
+            width: 85px;
+            height: 85px;
+            background: #fff;
+            top: 22%;
+            right: 5%;
+            transform: rotate(15deg);
+        }
+
+        /* Star accents */
+        .star {
+            position: absolute;
+            color: #ffcc00;
+            font-size: 45px;
+        }
+
+        .star-1 { top: 15%; left: 45%; transform: rotate(15deg); }
+        .star-2 { bottom: 25%; right: 25%; transform: rotate(-10deg); }
+        .star-3 { top: 70%; left: 8%; transform: rotate(20deg); color: #00d4ff; }
+
+        /* Profile zone */
+        .profile-zone {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 256px;
+            height: 256px;
+        }
+
+        /* Dotted pattern */
+        .dots-pattern {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 220px;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.12) 2px, transparent 2px);
+            background-size: 28px 28px;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="noise"></div>
+
+    <!-- Geometric stripes -->
+    <div class="diagonal-stripe"></div>
+    <div class="diagonal-stripe-2"></div>
+    <div class="diagonal-stripe-3"></div>
+
+    <!-- Geometric blocks -->
+    <div class="geo-block block-1"></div>
+    <div class="geo-block block-2"></div>
+    <div class="geo-block block-3"></div>
+    <div class="geo-block block-4"></div>
+
+    <!-- Circle accents -->
+    <div class="circle-accent circle-1"></div>
+    <div class="circle-accent circle-2"></div>
+    <div class="circle-accent circle-3"></div>
+
+    <!-- Dots pattern -->
+    <div class="dots-pattern"></div>
+
+    <!-- Stars -->
+    <div class="star star-1">✦</div>
+    <div class="star star-2">✦</div>
+    <div class="star star-3">✦</div>
+
+    <!-- Emoji stickers -->
+    <div class="emoji-sticker sticker-1">👵</div>
+    <div class="emoji-sticker sticker-2">🧠</div>
+    <div class="emoji-sticker sticker-3">👵</div>
+    <div class="emoji-sticker sticker-4">💡</div>
+    <div class="emoji-sticker sticker-5">✨</div>
+
+    <!-- Main content -->
+    <div class="content">
+        <div class="title-block">
+            <span class="line-1">Se lo capisce</span>
+            <span class="line-2">Mia Nonna</span>
+            <span class="line-3">lo capisci anche tu</span>
+        </div>
+    </div>
+
+    <!-- Part badge -->
+    <div class="part-badge">
+        Parte <span class="part-number">{{PARTE}}</span>
+    </div>
+
+    <!-- Profile zone -->
+    <div class="profile-zone"></div>
+</body>
+</html>

@@ -15,7 +15,9 @@ export class PlannerService {
   async getPlanner() {
     const [entries, tasks] = await Promise.all([
       this.prisma.plannerEntry.findMany({ orderBy: { date: 'asc' } }),
-      this.prisma.plannerTask.findMany({ orderBy: [{ section: 'asc' }, { order: 'asc' }, { createdAt: 'asc' }] }),
+      this.prisma.plannerTask.findMany({
+        orderBy: [{ section: 'asc' }, { order: 'asc' }, { createdAt: 'asc' }],
+      }),
     ]);
     return { entries, tasks };
   }
@@ -25,8 +27,15 @@ export class PlannerService {
   createEntry(dto: CreateEntryDto) {
     return this.prisma.plannerEntry.upsert({
       where: { date: toDate(dto.date) },
-      update: { theme: dto.theme ?? null, ...(dto.published !== undefined && { published: dto.published }) },
-      create: { date: toDate(dto.date), theme: dto.theme ?? null, published: dto.published ?? false },
+      update: {
+        theme: dto.theme ?? null,
+        ...(dto.published !== undefined && { published: dto.published }),
+      },
+      create: {
+        date: toDate(dto.date),
+        theme: dto.theme ?? null,
+        published: dto.published ?? false,
+      },
     });
   }
 

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1440">
+    <title>Dove Mangio Oggi - Aceitunas - Preview TikTok</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            width: 1080px;
+            height: 1440px;
+            overflow: hidden;
+            background: #F4C20D; /* Spanish flag yellow */
+            position: relative;
+        }
+
+        .grain {
+            position: absolute;
+            width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* warm glow behind the olives */
+        .glow {
+            position: absolute;
+            width: 880px; height: 880px;
+            top: 520px; left: 100px;
+            background: radial-gradient(circle, #FFE07A 0%, #FFD23F 50%, rgba(255,210,63,0) 72%);
+            border-radius: 50%;
+            z-index: 5;
+        }
+
+        /* ---- olive leaves ---- */
+        .leaf {
+            position: absolute;
+            width: 150px; height: 70px;
+            background: #4E6B22;
+            border-radius: 0 100% 0 100%;
+            z-index: 11;
+            box-shadow: inset 0 -8px 0 rgba(0,0,0,0.12);
+        }
+        .leaf::after {
+            content: "";
+            position: absolute;
+            top: 50%; left: 12%;
+            width: 76%; height: 4px;
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-50%);
+        }
+        .leaf1 { top: 660px; left: 470px; transform: rotate(-32deg); }
+        .leaf2 { top: 680px; left: 560px; transform: rotate(38deg); background: #5C7C29; }
+
+        /* ---- olives (aceitunas) ---- */
+        .olive {
+            position: absolute;
+            width: 210px; height: 260px;
+            border-radius: 50%;
+            background: #74962E;
+            z-index: 12;
+            box-shadow:
+                inset -26px -30px 0 rgba(0,0,0,0.16),
+                inset 18px 20px 0 rgba(255,255,255,0.14);
+        }
+        .olive::before { /* gloss */
+            content: "";
+            position: absolute;
+            top: 34px; left: 40px;
+            width: 70px; height: 96px;
+            background: rgba(255,255,255,0.30);
+            border-radius: 50%;
+            transform: rotate(-18deg);
+            filter: blur(2px);
+        }
+        /* pimiento — red stuffing at the opening */
+        .pim {
+            position: absolute;
+            top: -6px; left: 50%;
+            width: 86px; height: 78px;
+            background: #C8321E;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            box-shadow: inset -10px -8px 0 rgba(0,0,0,0.20);
+            z-index: 2;
+        }
+
+        /* back row */
+        .o1 { left: 295px; top: 800px; transform: rotate(-10deg); z-index: 13; }
+        .o2 { left: 470px; top: 750px; transform: rotate(5deg);   z-index: 14; }
+        .o3 { left: 645px; top: 810px; transform: rotate(12deg);  z-index: 13; }
+        /* front row */
+        .o4 { left: 232px; top: 950px; transform: rotate(-16deg); z-index: 16; }
+        .o5 { left: 405px; top: 980px; transform: rotate(4deg);   z-index: 17; }
+        .o6 { left: 575px; top: 970px; transform: rotate(-6deg);  z-index: 16; }
+        .o7 { left: 700px; top: 935px; transform: rotate(18deg);  z-index: 15; }
+
+        /* ---- bowl ---- */
+        .bowl-interior {
+            position: absolute;
+            top: 1110px; left: 165px;
+            width: 750px; height: 180px;
+            background: #C9BA98;
+            border-radius: 50%;
+            z-index: 9;
+        }
+        .bowl-front {
+            position: absolute;
+            top: 1160px; left: 150px;
+            width: 780px; height: 250px;
+            background: #F1E8D6;
+            border-radius: 0 0 390px 390px / 0 0 250px 250px;
+            z-index: 22;
+            box-shadow: inset 0 14px 0 rgba(0,0,0,0.06);
+        }
+        .bowl-front::after { /* rim highlight */
+            content: "";
+            position: absolute;
+            top: 8px; left: 6%;
+            width: 88%; height: 10px;
+            background: rgba(255,255,255,0.55);
+            border-radius: 50%;
+        }
+
+        /* ---- title ---- */
+        .title {
+            position: absolute;
+            top: 300px;
+            left: 0;
+            right: 0;
+            z-index: 30;
+            font-family: 'Luckiest Guy', 'Impact', 'Arial Black', sans-serif;
+            font-size: 132px;
+            color: #C81D25; /* Spanish flag red */
+            text-align: center;
+            line-height: 0.98;
+            letter-spacing: 2px;
+            text-shadow: 6px 6px 0 #7A1018;
+        }
+        .title .small {
+            display: block;
+            font-size: 88px;
+            color: #1F1207;
+            text-shadow: 5px 5px 0 rgba(0,0,0,0.18);
+        }
+
+        .credit {
+            position: absolute;
+            bottom: 40px;
+            left: 350px;
+            right: 60px;
+            font-family: 'Arial', sans-serif;
+            font-size: 22px;
+            color: rgba(255, 255, 255, 0.55);
+            text-align: center;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body>
+    <div class="glow"></div>
+    <div class="grain"></div>
+
+    <!-- leaves -->
+    <div class="leaf leaf1"></div>
+    <div class="leaf leaf2"></div>
+
+    <!-- bowl interior (behind olives) -->
+    <div class="bowl-interior"></div>
+
+    <!-- olives -->
+    <div class="olive o1"></div>
+    <div class="olive o2"><div class="pim"></div></div>
+    <div class="olive o3"></div>
+    <div class="olive o4"><div class="pim"></div></div>
+    <div class="olive o5"></div>
+    <div class="olive o6"><div class="pim"></div></div>
+    <div class="olive o7"></div>
+
+    <!-- bowl front (over olive bottoms) -->
+    <div class="bowl-front"></div>
+
+    <!-- title -->
+    <div class="title">DOVE<br>MANGIO<span class="small">oggi?</span></div>
+
+    <div class="credit"></div>
+</body>
+</html>

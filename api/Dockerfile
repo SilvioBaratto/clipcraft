@@ -53,17 +53,19 @@ RUN rm -f package-lock.json && npm install --omit=dev --no-audit --no-fund
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/baml_client ./baml_client
 COPY --from=builder /app/baml_src ./baml_src
+COPY --from=builder /app/preview-templates ./preview-templates
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder /app/node_modules/@boundaryml ./node_modules/@boundaryml
 
-# Create non-root user for security
+# Create non-root user for security + writable output dir for rendered previews
 RUN addgroup --gid 1001 nestjs && \
     adduser --uid 1001 --ingroup nestjs --disabled-password --gecos "" nestjs && \
+    mkdir -p /app/output && \
     chown nestjs:nestjs /app && \
-    chown -R nestjs:nestjs /app/dist /app/prisma /app/baml_src /app/baml_client 2>/dev/null || true
+    chown -R nestjs:nestjs /app/dist /app/prisma /app/baml_src /app/baml_client /app/preview-templates /app/output 2>/dev/null || true
 
 # Switch to non-root user
 USER nestjs

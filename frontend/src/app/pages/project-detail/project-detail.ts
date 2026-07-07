@@ -7,13 +7,13 @@ import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
 import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 import { ScaledIframeDirective } from '../../directives/scaled-iframe.directive';
 import { ProjectService } from '../../services/project.service';
-import { ApiService } from '../../services/api.service';
-import { Project, Animation } from '../../models/project.model';
+import { ApiService, PreviewTemplate, PreviewPlatform } from '../../services/api.service';
+import { Project, Animation, Preview } from '../../models/project.model';
 import { IconName } from '../../icons';
 import { firstValueFrom } from 'rxjs';
 
-type ContentType = 'animations';
-type GenerationStep = 'idle' | 'animations' | 'complete';
+type ContentType = 'animations' | 'preview';
+type GenerationStep = 'idle' | 'animations' | 'previews' | 'complete';
 
 @Component({
   selector: 'app-project-detail',
@@ -46,11 +46,45 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   // Structured content storage
   animations = signal<Animation[]>([]);
 
+  // Scene repair (vision + Opus) state
+  repairingSceneId = signal<string | null>(null);
+  isSavingRepair = signal(false);
+  repairModal = signal<{
+    sceneId: string;
+    sceneNumber: number;
+    originalHtml: string;
+    status: 'loading' | 'done' | 'error';
+    changed: boolean;
+    summary: string;
+    repairedHtml: string;
+  } | null>(null);
+
+  // Preview cover state
+  preview = signal<Preview | null>(null);
+  previewTemplates = signal<PreviewTemplate[]>([]);
+  previewVersion = signal(0); // cache-bust the <img> after a re-render
+  savingPlatform = signal<PreviewPlatform | null>(null);
+  isApplyingOverride = signal(false);
+
+  // Override form
+  overrideTemplateId = signal('');
+  overrideTitle = signal('');
+  overrideParte = signal<number | null>(null);
+
+  selectedTemplate = computed(
+    () => this.previewTemplates().find((t) => t.id === this.overrideTemplateId()) ?? null,
+  );
+  overrideNeedsTitle = computed(() => !!this.selectedTemplate()?.fields.some((f) => f.key === 'title'));
+  overrideNeedsParte = computed(() => !!this.selectedTemplate()?.fields.some((f) => f.key === 'parte'));
+
   // Ordered steps for the selected types
   private activeSteps = computed<GenerationStep[]>(() => {
     const selected = this.selectedTypes();
     const steps: GenerationStep[] = [];
-    if (selected.has('animations')) steps.push('animations');
+    if (selected.has('animations')) {
+      steps.push('animations');
+      steps.push('previews');
+    }
     return steps;
   });
 
@@ -69,6 +103,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
   stepLabel = computed(() => {
     switch (this.currentStep()) {
       case 'animations': return 'Generating animations...';
+      case 'previews': return 'Selecting & rendering covers...';
       case 'complete': return 'All content generated!';
       default: return '';
     }
@@ -81,6 +116,12 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       title: 'Animations',
       icon: 'Film',
       description: 'Video animation scenes (1920x1080px)',
+    },
+    {
+      type: 'preview',
+      title: 'Cover Preview',
+      icon: 'Image',
+      description: 'Instagram + TikTok cover thumbnails',
     },
   ];
 
@@ -160,6 +201,8 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       this.editedScript.set(response.sourceScript ?? '');
       // Load structured content
       this.animations.set(project.animations || []);
+      this.setPreview(project.preview ?? null);
+      void this.loadPreviewTemplates();
     } catch {
       // If API fails, try local cache
       const found = this.projectService.getProjectById(projectId);
@@ -208,6 +251,7 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
         createdAt: new Date(a.createdAt),
         updatedAt: new Date(a.updatedAt),
       })),
+      preview: response.preview ?? null,
       createdAt: new Date(response.createdAt),
       updatedAt: new Date(response.updatedAt),
       thumbnail: response.thumbnail,
@@ -304,6 +348,8 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     switch (type) {
       case 'animations':
         return p.hasAnimations;
+      case 'preview':
+        return !!p.preview && (p.preview.hasInstagram || p.preview.hasTiktok);
       default:
         return false;
     }
@@ -360,6 +406,10 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       if (selected.has('animations')) {
         this.currentStep.set('animations');
         await firstValueFrom(this.apiService.generateProjectAnimations(p.id));
+
+        // Auto-pick the best cover template + render Instagram/TikTok PNGs
+        this.currentStep.set('previews');
+        await firstValueFrom(this.apiService.generateProjectPreviews(p.id));
       }
 
       // Done — fetch final project state
@@ -368,6 +418,8 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
       const updated = this.mapResponseToProject(projectResponse);
       this.project.set(updated);
       this.animations.set(updated.animations || []);
+      this.setPreview(updated.preview ?? null);
+      this.previewVersion.update((v) => v + 1);
 
       // Reset to idle and open the first generated tab
       this.currentStep.set('idle');
@@ -379,5 +431,133 @@ export class ProjectDetailComponent implements OnInit, OnDestroy {
     } finally {
       this.isGenerating.set(false);
     }
+  }
+
+  private setPreview(preview: Preview | null) {
+    this.preview.set(preview);
+    if (preview) {
+      this.overrideTemplateId.set(preview.templateId);
+      this.overrideTitle.set(preview.title ?? '');
+      this.overrideParte.set(preview.parte ?? null);
+    }
+  }
+
+  private async loadPreviewTemplates() {
+    if (this.previewTemplates().length > 0) return;
+    try {
+      const templates = await firstValueFrom(this.apiService.getPreviewTemplates());
+      this.previewTemplates.set(templates);
+    } catch (error) {
+      console.error('Failed to load preview templates:', error);
+    }
+  }
+
+  /** Cover image URL with a cache-bust so re-renders show immediately. */
+  previewImageUrl(platform: PreviewPlatform): string {
+    const p = this.project();
+    if (!p) return '';
+    return `${this.apiService.previewImageUrl(p.id, platform)}?v=${this.previewVersion()}`;
+  }
+
+  async savePreviewToPhotos(platform: PreviewPlatform) {
+    const p = this.project();
+    if (!p || this.savingPlatform()) return;
+    this.savingPlatform.set(platform);
+    try {
+      const blob = await firstValueFrom(this.apiService.downloadPreview(p.id, platform));
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${p.folderName || p.name}-${platform}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Save failed:', error);
+    } finally {
+      this.savingPlatform.set(null);
+    }
+  }
+
+  async applyPreviewOverride() {
+    const p = this.project();
+    if (!p || this.isApplyingOverride()) return;
+    this.isApplyingOverride.set(true);
+    try {
+      const title = this.overrideNeedsTitle() ? this.overrideTitle().trim() || null : null;
+      const parte = this.overrideNeedsParte() ? this.overrideParte() : null;
+      await firstValueFrom(
+        this.apiService.updateProjectPreview(p.id, {
+          templateId: this.overrideTemplateId(),
+          title,
+          parte,
+        }),
+      );
+      // Refresh the project so preview flags + fields reflect the re-render
+      const refreshed = this.mapResponseToProject(
+        await firstValueFrom(this.apiService.getProject(p.id)),
+      );
+      this.project.set(refreshed);
+      this.setPreview(refreshed.preview ?? null);
+      this.previewVersion.update((v) => v + 1);
+    } catch (error) {
+      console.error('Preview override failed:', error);
+    } finally {
+      this.isApplyingOverride.set(false);
+    }
+  }
+
+  // ---- Scene repair (vision + Opus) ----
+
+  async repairScene(scene: { id: string; sceneNumber: number; generatedHtml?: string }) {
+    if (!scene.generatedHtml || this.repairingSceneId()) return;
+    this.repairingSceneId.set(scene.id);
+    this.repairModal.set({
+      sceneId: scene.id,
+      sceneNumber: scene.sceneNumber,
+      originalHtml: scene.generatedHtml,
+      status: 'loading',
+      changed: false,
+      summary: '',
+      repairedHtml: '',
+    });
+    try {
+      const res = await firstValueFrom(this.apiService.repairScene(scene.id));
+      this.repairModal.update((m) =>
+        m && m.sceneId === scene.id
+          ? { ...m, status: 'done', changed: res.changed, summary: res.summary, repairedHtml: res.repairedHtml }
+          : m,
+      );
+    } catch (error) {
+      console.error('Scene repair failed:', error);
+      this.repairModal.update((m) => (m && m.sceneId === scene.id ? { ...m, status: 'error' } : m));
+    } finally {
+      this.repairingSceneId.set(null);
+    }
+  }
+
+  async keepRepair() {
+    const m = this.repairModal();
+    if (!m || m.status !== 'done' || !m.repairedHtml || this.isSavingRepair()) return;
+    this.isSavingRepair.set(true);
+    try {
+      await firstValueFrom(this.apiService.saveSceneHtml(m.sceneId, m.repairedHtml));
+      this.animations.update((anims) =>
+        anims.map((a) => ({
+          ...a,
+          scenes: a.scenes.map((s) =>
+            s.id === m.sceneId ? { ...s, generatedHtml: m.repairedHtml } : s,
+          ),
+        })),
+      );
+      this.repairModal.set(null);
+    } catch (error) {
+      console.error('Failed to save repaired scene:', error);
+    } finally {
+      this.isSavingRepair.set(false);
+    }
+  }
+
+  closeRepair() {
+    this.repairModal.set(null);
   }
 }

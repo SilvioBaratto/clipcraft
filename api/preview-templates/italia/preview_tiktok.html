@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1440">
+    <title>ITAL-IA - Preview TikTok</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 1080px;
+            height: 1440px;
+            overflow: hidden;
+            font-family: 'Space Grotesk', -apple-system, sans-serif;
+            background: #f0ece4;
+            position: relative;
+        }
+
+        /* Subtle grain texture */
+        .grain {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.035;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Italian flag vertical stripe - left edge */
+        .flag-stripe {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 28px;
+            height: 100%;
+            z-index: 10;
+        }
+
+        .flag-green {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 33.33%;
+            background: #008C45;
+        }
+
+        .flag-white {
+            position: absolute;
+            top: 33.33%;
+            left: 0;
+            width: 100%;
+            height: 33.34%;
+            background: #F4F5F0;
+        }
+
+        .flag-red {
+            position: absolute;
+            top: 66.67%;
+            left: 0;
+            width: 100%;
+            height: 33.33%;
+            background: #CD212A;
+        }
+
+        /* Top section with question */
+        .top-section {
+            position: absolute;
+            top: 80px;
+            left: 70px;
+            right: 70px;
+            z-index: 50;
+        }
+
+        .question-label {
+            display: inline-block;
+            background: #1a1a1a;
+            color: #f0ece4;
+            font-size: 26px;
+            font-weight: 500;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            padding: 12px 24px;
+            margin-bottom: 35px;
+        }
+
+        .question-text {
+            font-size: 72px;
+            font-weight: 700;
+            color: #1a1a1a;
+            line-height: 1.05;
+            letter-spacing: -3px;
+            max-width: 800px;
+        }
+
+        .question-text .highlight {
+            color: #CD212A;
+        }
+
+        /* Center brand block */
+        .brand-block {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 50;
+        }
+
+        .brand-name {
+            font-size: 180px;
+            font-weight: 700;
+            color: #1a1a1a;
+            letter-spacing: -8px;
+            line-height: 1;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .brand-name .ia {
+            color: #008C45;
+        }
+
+        .brand-dash {
+            display: inline-block;
+            color: #CD212A;
+        }
+
+        .brand-subtitle {
+            font-size: 30px;
+            font-weight: 500;
+            color: #1a1a1a;
+            letter-spacing: 12px;
+            text-transform: uppercase;
+            margin-top: 20px;
+            opacity: 0.6;
+        }
+
+        /* Horizontal rule accent */
+        .accent-line {
+            position: absolute;
+            height: 6px;
+            background: #1a1a1a;
+            z-index: 20;
+        }
+
+        .accent-line-1 {
+            top: 420px;
+            left: 70px;
+            width: 180px;
+        }
+
+        .accent-line-2 {
+            top: 420px;
+            right: 70px;
+            width: 180px;
+        }
+
+        /* Bottom description */
+        .bottom-section {
+            position: absolute;
+            bottom: 80px;
+            left: 350px;
+            right: 70px;
+            z-index: 50;
+        }
+
+        .desc-text {
+            font-size: 34px;
+            font-weight: 400;
+            color: #1a1a1a;
+            line-height: 1.4;
+            opacity: 0.7;
+        }
+
+        .desc-text strong {
+            font-weight: 700;
+            opacity: 1;
+            color: #1a1a1a;
+        }
+
+        /* Free badge */
+        .free-badge {
+            display: inline-block;
+            background: #008C45;
+            color: #fff;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            padding: 14px 32px;
+            margin-bottom: 20px;
+            box-shadow: 5px 5px 0 #1a1a1a;
+        }
+
+        /* Geometric decorations */
+        .geo-circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 5px solid #1a1a1a;
+            opacity: 0.12;
+            z-index: 5;
+        }
+
+        .geo-circle-1 {
+            width: 300px;
+            height: 300px;
+            top: -60px;
+            right: -60px;
+        }
+
+        .geo-circle-2 {
+            width: 200px;
+            height: 200px;
+            bottom: 300px;
+            left: -50px;
+        }
+
+        /* Dot grid */
+        .dot-grid {
+            position: absolute;
+            top: 460px;
+            right: 60px;
+            width: 200px;
+            height: 200px;
+            background-image: radial-gradient(circle, #1a1a1a 2px, transparent 2px);
+            background-size: 20px 20px;
+            opacity: 0.08;
+            z-index: 5;
+        }
+
+        /* Cross marks */
+        .cross {
+            position: absolute;
+            font-size: 36px;
+            color: #1a1a1a;
+            opacity: 0.1;
+            font-weight: 300;
+            z-index: 5;
+        }
+
+        .cross-1 { top: 350px; left: 100px; }
+        .cross-2 { top: 950px; right: 100px; }
+        .cross-3 { top: 750px; left: 80px; }
+
+        /* Corner marks */
+        .corner-mark {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            z-index: 20;
+        }
+
+        .corner-mark::before,
+        .corner-mark::after {
+            content: '';
+            position: absolute;
+            background: #1a1a1a;
+            opacity: 0.15;
+        }
+
+        .corner-tl::before { width: 40px; height: 3px; top: 0; left: 0; }
+        .corner-tl::after { width: 3px; height: 40px; top: 0; left: 0; }
+        .corner-tl { top: 50px; left: 50px; }
+
+        .corner-tr::before { width: 40px; height: 3px; top: 0; right: 0; left: auto; }
+        .corner-tr::after { width: 3px; height: 40px; top: 0; right: 0; left: auto; }
+        .corner-tr { top: 50px; right: 50px; }
+
+        .corner-br::before { width: 40px; height: 3px; bottom: 0; right: 0; left: auto; top: auto; }
+        .corner-br::after { width: 3px; height: 40px; bottom: 0; right: 0; left: auto; top: auto; }
+        .corner-br { bottom: 50px; right: 50px; }
+
+        /* Part badge */
+        .part-badge {
+            position: absolute;
+            bottom: 19%;
+            left: 50%;
+            transform: translateX(-50%) rotate(2deg);
+            background: #1a1a1a;
+            color: #f0ece4;
+            padding: 18px 48px;
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            box-shadow: 5px 5px 0 #CD212A;
+            z-index: 60;
+            white-space: nowrap;
+        }
+
+        .part-number {
+            color: #008C45;
+        }
+
+        /* Profile safe zone */
+        .profile-zone {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 256px;
+            height: 256px;
+        }
+    </style>
+</head>
+<body>
+    <div class="grain"></div>
+
+    <!-- Italian flag stripe -->
+    <div class="flag-stripe">
+        <div class="flag-green"></div>
+        <div class="flag-white"></div>
+        <div class="flag-red"></div>
+    </div>
+
+    <!-- Corner marks -->
+    <div class="corner-mark corner-tl"></div>
+    <div class="corner-mark corner-tr"></div>
+    <div class="corner-mark corner-br"></div>
+
+    <!-- Geometric decorations -->
+    <div class="geo-circle geo-circle-1"></div>
+    <div class="geo-circle geo-circle-2"></div>
+    <div class="dot-grid"></div>
+    <div class="cross cross-1">+</div>
+    <div class="cross cross-2">+</div>
+    <div class="cross cross-3">+</div>
+
+    <!-- Accent lines -->
+    <div class="accent-line accent-line-1"></div>
+    <div class="accent-line accent-line-2"></div>
+
+    <!-- Top section -->
+    <div class="top-section">
+        <div class="question-label">La domanda</div>
+        <div class="question-text">
+            Quanto conosci<br>
+            la tua <span class="highlight">regione</span>?
+        </div>
+    </div>
+
+    <!-- Center brand -->
+    <div class="brand-block">
+        <div class="brand-name">ITAL<span class="brand-dash">-</span><span class="ia">IA</span></div>
+        <div class="brand-subtitle">Intelligenza Artificiale</div>
+    </div>
+
+    <!-- Part badge -->
+    <div class="part-badge">
+        Parte <span class="part-number">{{PARTE}}</span>
+    </div>
+
+</body>
+</html>

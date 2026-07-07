@@ -90,6 +90,23 @@ export class AnimationResponseDto {
   updatedAt: Date;
 }
 
+export class PreviewResponseDto {
+  @ApiProperty({ example: 'breaking_news' })
+  templateId: string;
+
+  @ApiPropertyOptional({ example: 'Il tuo telefono ti avvisa prima del terremoto' })
+  title?: string | null;
+
+  @ApiPropertyOptional({ example: 28 })
+  parte?: number | null;
+
+  @ApiProperty({ example: true })
+  hasInstagram: boolean;
+
+  @ApiProperty({ example: true })
+  hasTiktok: boolean;
+}
+
 export class ProjectResponseDto {
   @ApiProperty({ example: 'clx1234567890' })
   id: string;
@@ -125,6 +142,9 @@ Seguimi per altre curiosità tech!`,
 
   @ApiProperty({ description: 'Structured animations with scenes', type: [AnimationResponseDto] })
   animations: AnimationResponseDto[];
+
+  @ApiPropertyOptional({ description: 'LLM-picked cover preview (Instagram + TikTok)' })
+  preview?: PreviewResponseDto | null;
 
   @ApiProperty()
   createdAt: Date;

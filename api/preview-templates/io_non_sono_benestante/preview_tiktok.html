@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1440">
+    <title>Io non sono benestante - Parte 1 (TikTok)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            width: 1080px;
+            height: 1440px;
+            overflow: hidden;
+            font-family: 'Space Mono', monospace;
+            background: #0b0e14;
+            position: relative;
+        }
+
+        /* Scanlines */
+        .scanlines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,100,0.015) 2px, rgba(0,255,100,0.015) 4px);
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Grid */
+        .grid-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0,255,100,0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,100,0.035) 1px, transparent 1px);
+            background-size: 54px 54px;
+        }
+
+        /* Currency watermarks */
+        .currency-watermark {
+            position: absolute;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            color: rgba(255,255,255,0.02);
+            z-index: 1;
+            line-height: 1;
+        }
+        .cw-1 { font-size: 650px; top: -80px; right: -100px; }
+        .cw-2 { font-size: 450px; bottom: 60px; left: -70px; }
+
+        /* Chart */
+        .chart-svg {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            height: 55%;
+            z-index: 2;
+        }
+
+        .loss-zone {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 35%;
+            height: 26%;
+            background: linear-gradient(0deg, rgba(255,23,68,0.14) 0%, transparent 100%);
+            z-index: 1;
+        }
+
+        .gain-zone {
+            position: absolute;
+            bottom: 40px;
+            right: 0;
+            width: 65%;
+            height: 42%;
+            background: linear-gradient(0deg, rgba(0,255,100,0.07) 0%, transparent 100%);
+            z-index: 1;
+        }
+
+        /* === CENTRAL CONTENT === */
+        .center-block {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 50;
+            text-align: center;
+            width: 90%;
+        }
+
+        .title-line-1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 44px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.35);
+            text-transform: uppercase;
+            letter-spacing: 14px;
+            margin-bottom: 8px;
+        }
+
+        .title-line-2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 152px;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: -5px;
+            line-height: 0.88;
+            text-shadow: 0 0 80px rgba(0,255,100,0.3);
+        }
+
+        .title-line-3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 152px;
+            font-weight: 700;
+            color: #00ff64;
+            text-transform: uppercase;
+            letter-spacing: -5px;
+            line-height: 0.88;
+            text-shadow: 0 0 120px rgba(0,255,100,0.5);
+        }
+
+        .title-strike { position: relative; }
+        .title-strike::after {
+            content: '';
+            position: absolute;
+            left: -4%;
+            right: -4%;
+            top: 52%;
+            height: 10px;
+            background: #ff1744;
+            transform: rotate(-1deg);
+        }
+
+        /* Divider line */
+        .divider {
+            width: 120px;
+            height: 2px;
+            background: rgba(255,215,64,0.4);
+            margin: 36px auto 28px;
+        }
+
+        /* Part number - prominent */
+        .part-number {
+            font-family: 'Space Mono', monospace;
+            font-size: 56px;
+            font-weight: 700;
+            color: #ffd740;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+        }
+        .part-number span {
+            color: #fff;
+        }
+
+        /* Ticker tape */
+        .ticker {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: #ff1744;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+        .ticker-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            padding-left: 24px;
+        }
+        .ticker-sep { color: rgba(255,255,255,0.4); margin: 0 16px; }
+
+        /* Floating tickers */
+        .fin-data {
+            position: absolute;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            z-index: 15;
+        }
+        .fin-1 { top: 5%; left: 5%; color: rgba(0,255,100,0.22); }
+        .fin-2 { top: 5%; right: 5%; color: rgba(255,23,68,0.22); }
+        .fin-3 { top: 9%; left: 32%; color: rgba(0,255,100,0.16); }
+        .fin-4 { top: 9%; right: 18%; color: rgba(255,215,64,0.18); }
+        .fin-5 { top: 13%; left: 8%; color: rgba(255,23,68,0.18); }
+        .fin-6 { top: 13%; right: 8%; color: rgba(0,255,100,0.18); }
+
+        /* Bid/Ask */
+        .bid-ask {
+            position: absolute;
+            right: 28px;
+            top: 42%;
+            z-index: 25;
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            line-height: 1.7;
+            background: rgba(11,14,20,0.85);
+            border-left: 2px solid #00ff64;
+            padding: 6px 10px;
+        }
+        .bid-ask .bid { color: #00ff64; }
+        .bid-ask .ask { color: #ff1744; }
+        .bid-ask .spread { color: rgba(255,255,255,0.3); }
+
+        /* Stamps */
+        .stamp {
+            position: absolute;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: 4px solid;
+            padding: 6px 18px;
+            z-index: 12;
+        }
+        .stamp-bull {
+            top: 20%;
+            right: 5%;
+            font-size: 22px;
+            color: rgba(0,255,100,0.18);
+            border-color: rgba(0,255,100,0.12);
+            transform: rotate(12deg);
+        }
+        .stamp-bear {
+            bottom: 28%;
+            left: 4%;
+            font-size: 16px;
+            color: rgba(255,23,68,0.15);
+            border-color: rgba(255,23,68,0.1);
+            transform: rotate(-8deg);
+        }
+
+        /* Labels */
+        .candle-label {
+            position: absolute;
+            font-family: 'Space Mono', monospace;
+            font-size: 9px;
+            color: rgba(255,255,255,0.07);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            z-index: 6;
+        }
+        .cl-1 { bottom: 46%; left: 5%; }
+        .cl-2 { bottom: 42%; right: 5%; }
+        .cl-3 { top: 60%; left: 40%; }
+
+        /* Vertical text */
+        .vert-text {
+            position: absolute;
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            writing-mode: vertical-rl;
+            color: rgba(255,255,255,0.08);
+            z-index: 10;
+        }
+        .vert-left { left: 10px; top: 50%; transform: translateY(-50%); }
+        .vert-right { right: 10px; top: 50%; transform: translateY(-50%) rotate(180deg); }
+
+        /* Corner markers */
+        .corner-mark { position: absolute; width: 35px; height: 35px; z-index: 30; }
+        .corner-mark::before, .corner-mark::after { content: ''; position: absolute; background: rgba(0,255,100,0.25); }
+        .cm-tl { top: 10px; left: 10px; }
+        .cm-tl::before { width: 35px; height: 2px; top: 0; left: 0; }
+        .cm-tl::after { width: 2px; height: 35px; top: 0; left: 0; }
+        .cm-tr { top: 10px; right: 10px; }
+        .cm-tr::before { width: 35px; height: 2px; top: 0; right: 0; }
+        .cm-tr::after { width: 2px; height: 35px; top: 0; right: 0; }
+        .cm-bl { bottom: 50px; left: 10px; }
+        .cm-bl::before { width: 35px; height: 2px; bottom: 0; left: 0; }
+        .cm-bl::after { width: 2px; height: 35px; bottom: 0; left: 0; }
+        .cm-br { bottom: 50px; right: 10px; }
+        .cm-br::before { width: 35px; height: 2px; bottom: 0; right: 0; }
+        .cm-br::after { width: 2px; height: 35px; bottom: 0; right: 0; }
+
+        /* Price lines */
+        .price-line {
+            position: absolute; left: 0; width: 100%; height: 1px; z-index: 3;
+            display: flex; align-items: center;
+        }
+        .price-line::before { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.04); }
+        .price-label {
+            font-family: 'Space Mono', monospace; font-size: 10px;
+            color: rgba(255,255,255,0.1); padding: 0 10px; white-space: nowrap;
+        }
+        .pl-1 { top: 28%; }
+        .pl-2 { top: 48%; }
+        .pl-3 { top: 66%; }
+        .pl-4 { top: 82%; }
+
+        /* Crosshair */
+        .crosshair-v {
+            position: absolute; left: 74%; top: 0; width: 1px; height: 100%;
+            background: rgba(0,255,100,0.1); z-index: 4;
+        }
+        .crosshair-h {
+            position: absolute; top: 38%; left: 0; width: 100%; height: 1px;
+            background: rgba(0,255,100,0.1); z-index: 4;
+        }
+        .crosshair-dot {
+            position: absolute; left: calc(74% - 5px); top: calc(38% - 5px);
+            width: 10px; height: 10px; border-radius: 50%;
+            background: #00ff64; box-shadow: 0 0 18px rgba(0,255,100,0.5); z-index: 5;
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="grid-bg"></div>
+    <div class="currency-watermark cw-1">&euro;</div>
+    <div class="currency-watermark cw-2">$</div>
+
+    <!-- Chart -->
+    <svg class="chart-svg" viewBox="0 0 1080 792" preserveAspectRatio="none">
+        <defs>
+            <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#00ff64" stop-opacity="0.08"/>
+                <stop offset="100%" stop-color="#00ff64" stop-opacity="0"/>
+            </linearGradient>
+        </defs>
+        <path d="M0,620 L60,600 120,640 180,580 240,610 300,650 360,620 420,570 480,540 540,560 600,510 660,470 720,430 780,390 840,340 900,280 960,240 1020,200 1080,160 L1080,792 L0,792 Z" fill="url(#chartFill)"/>
+        <path d="M0,620 L60,600 120,640 180,580 240,610 300,650 360,620 420,570 480,540 540,560 600,510 660,470 720,430 780,390 840,340 900,280 960,240 1020,200 1080,160" fill="none" stroke="#00ff64" stroke-width="3" stroke-opacity="0.5"/>
+        <path d="M0,620 L60,600 120,640 180,580 240,610 300,650" fill="none" stroke="#ff1744" stroke-width="3" stroke-opacity="0.4"/>
+        <!-- Candlesticks -->
+        <line x1="90" y1="580" x2="90" y2="650" stroke="#ff1744" stroke-width="1.5" stroke-opacity="0.25"/>
+        <rect x="82" y="600" width="16" height="35" fill="#ff1744" fill-opacity="0.2"/>
+        <line x1="270" y1="590" x2="270" y2="660" stroke="#ff1744" stroke-width="1.5" stroke-opacity="0.25"/>
+        <rect x="262" y="610" width="16" height="40" fill="#ff1744" fill-opacity="0.2"/>
+        <line x1="450" y1="540" x2="450" y2="600" stroke="#00ff64" stroke-width="1.5" stroke-opacity="0.25"/>
+        <rect x="442" y="555" width="16" height="30" fill="#00ff64" fill-opacity="0.15"/>
+        <line x1="630" y1="440" x2="630" y2="500" stroke="#00ff64" stroke-width="1.5" stroke-opacity="0.25"/>
+        <rect x="622" y="455" width="16" height="30" fill="#00ff64" fill-opacity="0.15"/>
+        <line x1="810" y1="350" x2="810" y2="420" stroke="#00ff64" stroke-width="1.5" stroke-opacity="0.25"/>
+        <rect x="802" y="365" width="16" height="35" fill="#00ff64" fill-opacity="0.15"/>
+        <line x1="930" y1="250" x2="930" y2="310" stroke="#00ff64" stroke-width="1.5" stroke-opacity="0.25"/>
+        <rect x="922" y="260" width="16" height="30" fill="#00ff64" fill-opacity="0.15"/>
+        <!-- Volume bars -->
+        <rect x="50" y="740" width="30" height="45" fill="#ff1744" fill-opacity="0.12"/>
+        <rect x="110" y="730" width="30" height="55" fill="#ff1744" fill-opacity="0.1"/>
+        <rect x="170" y="745" width="30" height="40" fill="#00ff64" fill-opacity="0.1"/>
+        <rect x="230" y="720" width="30" height="65" fill="#ff1744" fill-opacity="0.12"/>
+        <rect x="290" y="735" width="30" height="50" fill="#ff1744" fill-opacity="0.1"/>
+        <rect x="350" y="750" width="30" height="35" fill="#00ff64" fill-opacity="0.08"/>
+        <rect x="410" y="725" width="30" height="60" fill="#00ff64" fill-opacity="0.12"/>
+        <rect x="470" y="740" width="30" height="45" fill="#ff1744" fill-opacity="0.1"/>
+        <rect x="530" y="715" width="30" height="70" fill="#00ff64" fill-opacity="0.12"/>
+        <rect x="590" y="730" width="30" height="55" fill="#00ff64" fill-opacity="0.1"/>
+        <rect x="650" y="710" width="30" height="75" fill="#00ff64" fill-opacity="0.15"/>
+        <rect x="710" y="725" width="30" height="60" fill="#00ff64" fill-opacity="0.12"/>
+        <rect x="770" y="700" width="30" height="85" fill="#00ff64" fill-opacity="0.18"/>
+        <rect x="830" y="715" width="30" height="70" fill="#00ff64" fill-opacity="0.12"/>
+        <rect x="890" y="690" width="30" height="95" fill="#00ff64" fill-opacity="0.2"/>
+        <rect x="950" y="705" width="30" height="80" fill="#00ff64" fill-opacity="0.15"/>
+        <rect x="1010" y="680" width="30" height="105" fill="#00ff64" fill-opacity="0.22"/>
+        <!-- MA line -->
+        <path d="M0,630 Q180,620 360,600 Q540,550 720,460 Q900,340 1080,200" fill="none" stroke="#ffd740" stroke-width="1.5" stroke-opacity="0.12" stroke-dasharray="8,6"/>
+    </svg>
+
+    <div class="loss-zone"></div>
+    <div class="gain-zone"></div>
+
+    <!-- Financial tickers -->
+    <div class="fin-data fin-1">AAPL <span style="color:rgba(0,255,100,0.32)">+2.34%</span></div>
+    <div class="fin-data fin-2">TSLA <span style="color:rgba(255,23,68,0.32)">-4.12%</span></div>
+    <div class="fin-data fin-3">MSFT <span style="color:rgba(0,255,100,0.24)">+1.87%</span></div>
+    <div class="fin-data fin-4">EUR/USD <span style="color:rgba(255,215,64,0.26)">1.0842</span></div>
+    <div class="fin-data fin-5">BTC <span style="color:rgba(255,23,68,0.26)">-1.56%</span></div>
+    <div class="fin-data fin-6">S&P 500 <span style="color:rgba(0,255,100,0.26)">+0.89%</span></div>
+
+    <div class="bid-ask">
+        <div class="bid">BID 11,284.50</div>
+        <div class="ask">ASK 11,286.20</div>
+        <div class="spread">SPR 1.70</div>
+    </div>
+
+    <div class="stamp stamp-bull">BULL</div>
+    <div class="stamp stamp-bear">BEAR</div>
+    <div class="candle-label cl-1">VOL 2.4M</div>
+    <div class="candle-label cl-2">OHLC</div>
+    <div class="candle-label cl-3">MA(50)</div>
+
+    <div class="price-line pl-1"><span class="price-label">12,840.00</span></div>
+    <div class="price-line pl-2"><span class="price-label">9,120.50</span></div>
+    <div class="price-line pl-3"><span class="price-label">5,400.00</span></div>
+    <div class="price-line pl-4"><span class="price-label">1,680.75</span></div>
+
+    <div class="crosshair-v"></div>
+    <div class="crosshair-h"></div>
+    <div class="crosshair-dot"></div>
+
+    <div class="corner-mark cm-tl"></div>
+    <div class="corner-mark cm-tr"></div>
+    <div class="corner-mark cm-bl"></div>
+    <div class="corner-mark cm-br"></div>
+
+    <div class="vert-text vert-left">sharpe ratio // max drawdown // var 95%</div>
+    <div class="vert-text vert-right">mean-variance // efficient frontier</div>
+
+    <!-- === CENTERED CONTENT === -->
+    <div class="center-block">
+        <div class="title-line-1">io non sono</div>
+        <div class="title-line-2 title-strike">Bene</div>
+        <div class="title-line-3">stante</div>
+        <div class="divider"></div>
+        <div class="part-number">PT.<span>{{PARTE}}</span></div>
+    </div>
+
+    <!-- Ticker -->
+    <div class="ticker">
+        <div class="ticker-text">
+            FTSE MIB +0.42%
+            <span class="ticker-sep">//</span>
+            DAX -0.18%
+            <span class="ticker-sep">//</span>
+            S&P 500 +0.89%
+            <span class="ticker-sep">//</span>
+            BTC -1.56%
+            <span class="ticker-sep">//</span>
+            EUR/USD 1.0842
+            <span class="ticker-sep">//</span>
+            GOLD +0.34%
+        </div>
+    </div>
+</body>
+</html>
